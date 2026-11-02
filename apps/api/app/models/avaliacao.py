@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, Uuid
+from sqlalchemy import JSON, DateTime, ForeignKey, String, Text, Uuid
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -33,6 +33,10 @@ class Avaliacao(SyncMixin, Base):
     )
     versao_pipeline: Mapped[str | None] = mapped_column(String, nullable=True)
     observacoes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # resultado: payload JSON produzido pelo pipeline (ver indexbeef_vision.pipeline).
+    # Guardado como coluna JSONB enquanto nao migramos para as tabelas estruturadas
+    # (medidas, caixa_virtual, escores, predicao) descritas no docs/06.
+    resultado: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
     animal: Mapped[Animal] = relationship(back_populates="avaliacoes")
     capturas: Mapped[list[Captura]] = relationship(
