@@ -8,6 +8,22 @@ peso:
   formula_pt_cc:
     k: 90.0  # TODO: validar com zootecnista / balança no Pantanal
 
+projecao:
+  # Curva de Brody: W(t) = A * (1 - B * exp(-k*t)), t em meses, W em kg.
+  # Parâmetros iniciais para Nelore vindos da literatura — recalibrar com dados
+  # das próprias fazendas após a Fase 2 (ver docs/05 §2).
+  brody:
+    femea:
+      peso_adulto_kg: 450.0   # A
+      B: 0.90
+      k: 0.045
+    macho:
+      peso_adulto_kg: 650.0   # A
+      B: 0.90
+      k: 0.040
+  faixa_pct: 0.08              # ±8% em torno do ponto estimado -> min/max
+  idades_alvo_meses: [18, 24, 30]
+
 indice_garrote:
   componentes:
     ipl: 0.20
