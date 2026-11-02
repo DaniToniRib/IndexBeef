@@ -1,0 +1,44 @@
+# Pesos e limiares dos índices do IndexBeef.
+# TODOS os valores aqui são INICIAIS e HIPOTÉTICOS — devem ser calibrados com dados do teste de campo e validados por zootecnista (ver docs/05-avaliacoes-e-indices.md).
+
+versao: "0.1.0"
+
+peso:
+  # Fase 0: Peso (kg) ≈ k * PT^2 * CC  (PT e CC em metros). k será ajustado para Nelore.
+  formula_pt_cc:
+    k: 90.0  # TODO: validar com zootecnista / balança no Pantanal
+
+indice_garrote:
+  componentes:
+    ipl: 0.20
+    compacidade_pt_ac: 0.15
+    comprimento_relativo: 0.10
+    largura_garupa: 0.10
+    musculosidade_m: 0.15
+    gmd_peso_idade: 0.15
+    deps_crescimento_carcaca: 0.15
+
+indice_reprodutor:
+  componentes:
+    estrutura_precocidade_ep: 0.20
+    aprumos_a: 0.15
+    umbigo_bainha_u: 0.10
+    racial_sexualidade_rs: 0.10
+    perimetro_escrotal_ajustado: 0.15
+    deps: 0.30
+  eliminatorios:
+    - aprumo_grave
+    - umbigo_pendular
+    - defeito_genetico
+    - andrologico_reprovado
+
+indice_matriz:
+  componentes:
+    capacidade_corporal: 0.20
+    garupa_lg_cg: 0.15
+    inclinacao_garupa_faixa: 0.05
+    aprumos_a: 0.10
+    umbigo_u: 0.05
+    feminilidade_rs: 0.05
+    ecc_adequado: 0.10
+    deps_maternas: 0.30
