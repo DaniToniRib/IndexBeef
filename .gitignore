@@ -1,0 +1,28 @@
+# Mídias e dados (nunca no git)
+samples/
+data/
+datasets/raw/
+*.mp4
+*.mov
+*.avi
+*.pt
+*.onnx
+*.pth
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+
+# Ambiente
+.env
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
