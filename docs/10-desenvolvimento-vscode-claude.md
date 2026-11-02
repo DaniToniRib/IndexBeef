@@ -67,7 +67,7 @@ Mantenha o `CLAUDE.md` atualizado conforme o projeto evolui.
 
 1. `Leia o CLAUDE.md e toda a pasta docs/. Resuma o projeto e a Fase 0 do roadmap.`
 2. `Crie a estrutura do monorepo descrita em docs/09 com docker-compose (db, redis, minio, api, worker, web) e um endpoint /health.`
-3. `Crie hardware/gerar_placa_aruco.py que gera um PDF A3 com o marcador ArUco DICT_4X4_50 ID 0 em 40x40 cm.`
+3. `Crie hardware/gerar_placa_aruco.py que gera o PDF da placa ArUco DICT_4X4_50 (IDs 0 e 1) no tamanho real 40x40 cm, com margem de quiet zone e rótulo. Inclua variante --formato a3 só para prototipagem (ver docs/03).`
 4. `Implemente os modelos SQLAlchemy e a migração Alembic de acordo com docs/06 (fazenda, lote, animal, pesagem, avaliacao, captura).`
 5. `Implemente no worker a extração de frames e a segmentação com YOLO-seg (classe cow), com teste usando um vídeo de exemplo.`
 6. `Implemente calibration.py (ArUco + homografia) com teste usando uma imagem sintética.`

@@ -9,6 +9,9 @@ datasets/raw/
 *.onnx
 *.pth
 
+# PDFs gerados por scripts (sempre reproduzíveis via hardware/gerar_placa_aruco.py)
+hardware/*.pdf
+
 # Python
 __pycache__/
 *.pyc

@@ -28,6 +28,10 @@ cd apps/api && pytest           # testes backend
 cd apps/worker && pytest        # testes do pipeline
 cd apps/web && npm test         # testes frontend
 ruff check . && ruff format .   # lint/format Python
+
+# Hardware (placa ArUco de calibracao):
+pip install -r hardware/requirements.txt
+python hardware/gerar_placa_aruco.py --id 0  # PDF 40x40 cm, tamanho real
 ```
 
 ## Convenções

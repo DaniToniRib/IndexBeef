@@ -42,7 +42,18 @@ Sem calibração não existe medida em centímetros. Opções, em ordem de prior
 2. **Câmera fixa calibrada**: suporte fixo a uma distância conhecida do corredor, com calibração feita uma vez.
 3. **Profundidade (LiDAR / RealSense)**: medida 3D direta. É a melhor para a caixa virtual, mas exige hardware específico (fase posterior).
 
-> 📌 Arquivo da placa a criar: `hardware/placa-aruco-40cm.pdf` (gerar com OpenCV `cv2.aruco`, dicionário `DICT_4X4_50`, ID 0 e 1).
+> 📌 **PDF da placa**: gerado por `hardware/gerar_placa_aruco.py` (OpenCV `cv2.aruco`, dicionário `DICT_4X4_50`, IDs 0 e 1).
+>
+> O PDF é emitido **no tamanho físico real** (40×40 cm + 2 cm de margem/*quiet zone*), para que a gráfica/plotter reproduza as dimensões sem reescalonamento. Nunca imprimir "ajustar à página".
+>
+> Comandos:
+> ```bash
+> pip install -r hardware/requirements.txt
+> python hardware/gerar_placa_aruco.py --id 0  # → hardware/placa-aruco-40cm-id0.pdf
+> python hardware/gerar_placa_aruco.py --id 1  # → hardware/placa-aruco-40cm-id1.pdf
+> # Para bancada (não usar em campo):
+> python hardware/gerar_placa_aruco.py --formato a3 --id 0
+> ```
 
 ## Montagem recomendada no curral
 
