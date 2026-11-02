@@ -37,9 +37,9 @@ def montar_caixa_virtual(medidas: MedidasLineares) -> CaixaVirtual:
     c = medidas.comprimento_corporal
     p = medidas.profundidade_toracica
     ac = medidas.altura_cernelha
-    l = medidas.largura_garupa
+    largura = medidas.largura_garupa
 
-    volume_cm3 = c * p * l if l is not None else None
+    volume_cm3 = c * p * largura if largura is not None else None
     volume_l = volume_cm3 / 1000.0 if volume_cm3 is not None else None
 
     ipl = (
@@ -54,7 +54,7 @@ def montar_caixa_virtual(medidas: MedidasLineares) -> CaixaVirtual:
     return CaixaVirtual(
         c_cm=c,
         p_cm=p,
-        l_cm=l,
+        l_cm=largura,
         volume_cm3=volume_cm3,
         volume_l=volume_l,
         ipl=ipl,

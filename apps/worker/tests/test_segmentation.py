@@ -126,8 +126,7 @@ def test_detectar_cows_com_yolo_real() -> None:
 
     Pulado se `ultralytics` nao estiver instalado (extra [ml] opcional).
     """
-    ultralytics = pytest.importorskip("ultralytics")
-    import cv2  # noqa: F401
+    pytest.importorskip("ultralytics")
 
     from indexbeef_vision.segmentation import carregar_modelo, detectar_cows
 

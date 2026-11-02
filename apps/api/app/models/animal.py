@@ -4,9 +4,8 @@ import uuid
 from datetime import date
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Date
+from sqlalchemy import Boolean, Date, ForeignKey, String, Uuid
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy import ForeignKey, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, SyncMixin

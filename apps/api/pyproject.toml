@@ -43,3 +43,6 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+# UP042: `class X(str, Enum)` -> `class X(StrEnum)`. StrEnum muda __str__ e pode
+# afetar logs/SQLAlchemy; mantemos o padrao antigo que ja esta validado por testes.
+ignore = ["UP042"]

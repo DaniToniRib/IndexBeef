@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import pytest
@@ -106,7 +106,7 @@ def test_avaliacao_com_capturas(db: Session) -> None:
 
     av = Avaliacao(
         animal_id=animal.id,
-        data_hora=datetime(2026, 10, 20, 9, 30, tzinfo=timezone.utc),
+        data_hora=datetime(2026, 10, 20, 9, 30, tzinfo=UTC),
         versao_pipeline="0.1.0",
     )
     db.add(av)
@@ -162,7 +162,7 @@ def test_pesagem_vinculada_a_avaliacao_estimada(db: Session) -> None:
     db.add(animal)
     db.flush()
 
-    av = Avaliacao(animal_id=animal.id, data_hora=datetime.now(timezone.utc))
+    av = Avaliacao(animal_id=animal.id, data_hora=datetime.now(UTC))
     db.add(av)
     db.flush()
 
