@@ -9,6 +9,7 @@ GET /avaliacoes?animal_id=: lista avaliacoes de um animal.
 from __future__ import annotations
 
 import uuid
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from indexbeef_vision.pipeline import VERSAO_PIPELINE, montar_payload
@@ -17,6 +18,7 @@ from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.core.redis_queue import get_queue
+from app.models.animal import Animal
 from app.models.avaliacao import Avaliacao
 from app.models.enums import StatusAvaliacao
 from app.models.escore_avaliacao import EscoreAvaliacao
@@ -48,6 +50,7 @@ def criar_avaliacao(payload: AvaliacaoCreate, db: Session = Depends(get_db)) -> 
         "area_tronco_cm2": payload.area_tronco_cm2,
         "largura_torax_cm": payload.largura_torax_cm,
     }
+    params["px_por_cm"] = payload.px_por_cm
 
     avaliacao = Avaliacao(
         animal_id=payload.animal_id,
@@ -147,6 +150,111 @@ def listar_avaliacoes(
         .order_by(Avaliacao.data_hora.desc())
     )
     return list(db.scalars(stmt).all())
+
+
+_KEYPOINT_NAMES = [
+    "focinho", "nuca", "cupim", "cernelha", "meio_dorso", "lombo",
+    "ilio", "isquio", "insercao_cauda", "espadua", "cilha_sup", "cilha_inf",
+    "umbigo", "ventre", "joelho_ant", "casco_ant", "jarrete", "casco_post",
+]
+
+_SKELETON = [
+    [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8],
+    [9, 10], [10, 11], [14, 15], [16, 17], [3, 9], [6, 7],
+]
+
+
+@router.get("/exportar-coco")
+def exportar_coco(
+    fazenda_id: uuid.UUID | None = Query(None),
+    animal_id: uuid.UUID | None = Query(None),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Exporta anotacoes de keypoints no formato COCO para anotacao/treino."""
+    stmt = select(Avaliacao).where(Avaliacao.parametros_entrada.isnot(None))
+    if animal_id is not None:
+        stmt = stmt.where(Avaliacao.animal_id == animal_id)
+    if fazenda_id is not None:
+        stmt = stmt.join(Animal, Avaliacao.animal_id == Animal.id).where(
+            Animal.fazenda_id == fazenda_id,
+        )
+    avaliacoes = list(db.scalars(stmt).all())
+
+    images = []
+    annotations = []
+    ann_id = 1
+
+    for av in avaliacoes:
+        params = av.parametros_entrada or {}
+        kp_cm: dict = params.get("kp_cm", {})
+        if not kp_cm:
+            continue
+
+        px_por_cm: float = float(params.get("px_por_cm") or 5.0)
+
+        # Determinar file_name
+        file_name = f"{av.id}.jpg"
+        if av.capturas:
+            url = av.capturas[0].arquivo_url
+            if url:
+                file_name = url
+
+        images.append({
+            "id": str(av.id),
+            "file_name": file_name,
+            "width": 1280,
+            "height": 720,
+        })
+
+        # Montar lista flat de keypoints [x1,y1,v1, x2,y2,v2, ...]
+        kp_flat: list[float] = []
+        xs: list[float] = []
+        ys: list[float] = []
+        for i in range(18):
+            ponto = kp_cm.get(str(i))
+            if ponto:
+                x_px = float(ponto[0]) * px_por_cm
+                y_px = float(ponto[1]) * px_por_cm
+                kp_flat.extend([x_px, y_px, 2.0])
+                xs.append(x_px)
+                ys.append(y_px)
+            else:
+                kp_flat.extend([0.0, 0.0, 0.0])
+
+        if xs:
+            min_x, min_y = min(xs), min(ys)
+            max_x, max_y = max(xs), max(ys)
+            bbox = [min_x, min_y, max_x - min_x, max_y - min_y]
+        else:
+            bbox = [0.0, 0.0, 0.0, 0.0]
+
+        annotations.append({
+            "id": ann_id,
+            "image_id": str(av.id),
+            "category_id": 1,
+            "keypoints": kp_flat,
+            "num_keypoints": 18,
+            "area": 0,
+            "bbox": bbox,
+            "iscrowd": 0,
+        })
+        ann_id += 1
+
+    return {
+        "info": {
+            "description": "IndexBeef keypoints",
+            "version": "1.0",
+            "date_created": datetime.now(UTC).isoformat(),
+        },
+        "categories": [{
+            "id": 1,
+            "name": "bovino_lateral",
+            "keypoints": _KEYPOINT_NAMES,
+            "skeleton": _SKELETON,
+        }],
+        "images": images,
+        "annotations": annotations,
+    }
 
 
 @router.get("/{avaliacao_id}", response_model=AvaliacaoRead)

@@ -157,6 +157,7 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
       idade_meses: idadeMeses,
       keypoints_cm: keypointsCm,
       largura_garupa_cm: larguraGarupa ? parseFloat(larguraGarupa) : undefined,
+      px_por_cm: parseFloat(pxPorCm) || undefined,
       escore: escorePayload,
       medidas_manuais: medidasManuaisPayload,
     };

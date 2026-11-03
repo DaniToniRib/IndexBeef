@@ -16,7 +16,9 @@ from app.routers import (
     identificacoes,
     leituras_rfid,
     lotes,
+    modelo_versao,
     pesagens,
+    relatorio,
     relatorios,
 )
 
@@ -41,6 +43,8 @@ app.include_router(avaliacoes.router)
 app.include_router(capturas.router)
 app.include_router(dashboard.router)
 app.include_router(relatorios.router)
+app.include_router(relatorio.router)
+app.include_router(modelo_versao.router)
 app.include_router(eventos_reprodutivos.router)
 app.include_router(exames_andrologicos.router)
 

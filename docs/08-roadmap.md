@@ -37,11 +37,15 @@ Objetivo: **foto ou vídeo entra, ficha do animal sai**, com fotos e vídeos de 
 **Critério de saída**: dataset completo (identificação + peso + vídeo) de pelo menos 150 animais.
 
 ## Fase 3: Primeiros modelos (semanas 9–14)
-- [ ] Anotar os keypoints do dataset
-- [ ] Fine-tuning da segmentação para Nelore
-- [ ] Treinar o modelo de keypoints lateral (YOLO-pose ou RTMPose)
-- [ ] Treinar o modelo de peso (LightGBM)
-- [ ] Relatório de acurácia
+- [x] Exportação COCO para anotação de keypoints (`GET /avaliacoes/exportar-coco`)
+- [x] `modelo_versao`: tabela + API de registro e ativação de modelos treinados
+- [x] Script de treino LightGBM (`ml/train/train_peso_lightgbm.py`)
+- [x] Módulo de inferência YOLO-pose (`indexbeef_vision/keypoints_inference.py`) — ativo quando modelo disponível
+- [x] Relatório de acurácia (`GET /relatorio/acuracia`, `GET /relatorio/pesos`)
+- [ ] Fine-tuning da segmentação para Nelore — aguarda dataset Fase 2
+- [ ] Treinar modelo de keypoints lateral (YOLO-pose) — aguarda dataset Fase 2
+- [ ] Treinar modelo de peso (LightGBM) — aguarda dataset Fase 2
+- [ ] Relatório de acurácia com dados reais — aguarda dataset Fase 2
 
 **Metas**:
 | Métrica | Meta |

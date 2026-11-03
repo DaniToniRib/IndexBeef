@@ -24,6 +24,7 @@ from app.models.identificacao_eletronica import IdentificacaoEletronica
 from app.models.leitura_rfid import LeituraRfid
 from app.models.lote import Lote
 from app.models.medida_avaliacao import MedidaAvaliacao
+from app.models.modelo_versao import ModeloVersao
 from app.models.pesagem import Pesagem
 from app.models.predicao_avaliacao import PredicaoAvaliacao
 from app.models.telemetria_gps import TelemetriaGps
@@ -49,6 +50,7 @@ __all__ = [
     "LeituraRfid",
     "Lote",
     "MedidaAvaliacao",
+    "ModeloVersao",
     "Pesagem",
     "PredicaoAvaliacao",
     "SyncMixin",

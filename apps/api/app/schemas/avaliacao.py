@@ -38,6 +38,7 @@ class AvaliacaoCreate(BaseModel):
     largura_garupa_cm: float | None = Field(default=None, gt=0)
     area_tronco_cm2: float | None = Field(default=None, gt=0)
     largura_torax_cm: float | None = Field(default=None, gt=0)
+    px_por_cm: float | None = None  # escala usada na captura (pixels por cm)
     observacoes: str | None = None
     avaliador_id: uuid.UUID | None = None
     # Notas do tecnico (campo)
