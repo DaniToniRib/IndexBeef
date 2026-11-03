@@ -12,8 +12,12 @@ from app.models.base import Base, SyncMixin
 from app.models.caixa_virtual_avaliacao import CaixaVirtualAvaliacao
 from app.models.campanha import Campanha
 from app.models.captura import Captura
+from app.models.dados_geneticos import DadosGeneticos
 from app.models.dispositivo import Dispositivo
+from app.models.escore_avaliacao import EscoreAvaliacao
 from app.models.evento_geofence import EventoGeofence
+from app.models.evento_reprodutivo import EventoReprodutivo
+from app.models.exame_andrologico import ExameAndrologico
 from app.models.fazenda import Fazenda
 from app.models.geofence import Geofence
 from app.models.identificacao_eletronica import IdentificacaoEletronica
@@ -33,8 +37,12 @@ __all__ = [
     "CaixaVirtualAvaliacao",
     "Campanha",
     "Captura",
+    "DadosGeneticos",
     "Dispositivo",
+    "EscoreAvaliacao",
     "EventoGeofence",
+    "EventoReprodutivo",
+    "ExameAndrologico",
     "Fazenda",
     "Geofence",
     "IdentificacaoEletronica",

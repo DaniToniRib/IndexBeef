@@ -48,4 +48,16 @@ class MedidaAvaliacao(SyncMixin, Base):
     inclinacao_garupa_graus: Mapped[Decimal | None] = mapped_column(Numeric(6, 2), nullable=True)
     jarrete_graus: Mapped[Decimal | None] = mapped_column(Numeric(6, 2), nullable=True)
 
+    # Medicoes manuais de referencia (hipometro/fita/paquimetro — subconjunto ~1:3)
+    # NAO devem ser sobrescritas pelo worker (ON CONFLICT DO UPDATE nao inclui essas colunas)
+    altura_cernelha_manual_cm: Mapped[Decimal | None] = mapped_column(Numeric(7, 2), nullable=True)
+    altura_garupa_manual_cm: Mapped[Decimal | None] = mapped_column(Numeric(7, 2), nullable=True)
+    comprimento_corporal_manual_cm: Mapped[Decimal | None] = mapped_column(
+        Numeric(7, 2), nullable=True,
+    )
+    largura_garupa_manual_cm: Mapped[Decimal | None] = mapped_column(Numeric(7, 2), nullable=True)
+    perimetro_toracico_manual_cm: Mapped[Decimal | None] = mapped_column(
+        Numeric(7, 2), nullable=True,
+    )
+
     avaliacao: Mapped[Avaliacao] = relationship(back_populates="medida")

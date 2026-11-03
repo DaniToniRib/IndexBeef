@@ -11,7 +11,6 @@ POST /capturas/extrair-frame: recebe foto ou video, armazena no MinIO e,
 from __future__ import annotations
 
 import tempfile
-import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status

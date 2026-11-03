@@ -19,13 +19,20 @@ Objetivo: **foto ou vídeo entra, ficha do animal sai**, com fotos e vídeos de 
 - [x] Frontend PWA: câmera ao vivo com guia de silhueta (`CameraCaptura`), upload de vídeo e foto
 - [x] Funciona **offline** (IndexedDB / Dexie — `offline/db.ts`, `sync.ts`, `StatusOffline.tsx`)
 - [x] Importação CSV: animais (`POST /animais/importar-csv`) e pesagens (`POST /pesagens/importar-csv`)
-- [ ] Importação CSV: DEPs (requer tabela `dados_geneticos` — Fase 2)
+- [x] Importação CSV: DEPs (`POST /animais/importar-csv-deps`, tabela `dados_geneticos`)
 
 **Critério de saída**: medir uma caixa de papelão ou um objeto de tamanho conhecido com erro < 3%, e processar 10 vídeos de Nelore de ponta a ponta.
 
 ## Fase 2: Teste de campo no Pantanal (semanas 7–8)
 - [ ] Seguir o [protocolo de coleta](07-protocolo-coleta-campo.md)
 - [ ] Coletar de 160 a 330 animais
+
+### Preparação de campo (implementado 2026-11-03)
+- [x] Notas do técnico: ECC e EPMURAS por avaliação (`escore_avaliacao`, campo na UI)
+- [x] Medidas manuais de referência (~1:3): hipômetro/fita/paquímetro (`medida_avaliacao` colunas `*_manual_cm`)
+- [x] Eventos reprodutivos: cobertura, IATF, diagnóstico de gestação, parto, aborto, desmama (`evento_reprodutivo`, router `/eventos-reprodutivos`)
+- [x] Exame andrológico de touros (`exame_andrologico`, router `/exames-andrologicos`)
+- [x] DEPs por animal (`dados_geneticos`, router `POST /animais/importar-csv-deps`)
 
 **Critério de saída**: dataset completo (identificação + peso + vídeo) de pelo menos 150 animais.
 

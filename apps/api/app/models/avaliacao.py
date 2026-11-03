@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from app.models.animal import Animal
     from app.models.caixa_virtual_avaliacao import CaixaVirtualAvaliacao
     from app.models.captura import Captura
+    from app.models.escore_avaliacao import EscoreAvaliacao
     from app.models.medida_avaliacao import MedidaAvaliacao
     from app.models.pesagem import Pesagem
     from app.models.predicao_avaliacao import PredicaoAvaliacao
@@ -54,4 +55,7 @@ class Avaliacao(SyncMixin, Base):
     )
     predicoes: Mapped[list[PredicaoAvaliacao]] = relationship(
         back_populates="avaliacao", cascade="all, delete-orphan",
+    )
+    escore: Mapped[EscoreAvaliacao | None] = relationship(
+        back_populates="avaliacao", cascade="all, delete-orphan", uselist=False,
     )

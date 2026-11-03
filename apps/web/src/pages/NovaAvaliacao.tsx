@@ -39,6 +39,25 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
   const [fonteImagem, setFonteImagem] = useState<FonteImagem>("imagem");
   const [carregandoVideo, setCarregandoVideo] = useState(false);
 
+  // Escore do tecnico (ECC + EPMURAS)
+  const [mostrarEscore, setMostrarEscore] = useState(false);
+  const [ecc, setEcc] = useState("");
+  const [epmE, setEpmE] = useState("");
+  const [epmP, setEpmP] = useState("");
+  const [epmM, setEpmM] = useState("");
+  const [epmU, setEpmU] = useState("");
+  const [epmR, setEpmR] = useState("");
+  const [epmA, setEpmA] = useState("");
+  const [epmS, setEpmS] = useState("");
+
+  // Medidas manuais de referencia (subconjunto ~1:3)
+  const [mostrarManuais, setMostrarManuais] = useState(false);
+  const [manCernelha, setManCernelha] = useState("");
+  const [manGarupa, setManGarupa] = useState("");
+  const [manComprimento, setManComprimento] = useState("");
+  const [manLarguraGarupa, setManLarguraGarupa] = useState("");
+  const [manPerimetro, setManPerimetro] = useState("");
+
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [enfileirado, setEnfileirado] = useState(false);
@@ -109,6 +128,28 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
       y: p.y / scale,
     }));
 
+    const hasEcc = !!ecc;
+    const hasEpmuras = !!(epmE || epmP || epmM || epmU || epmR || epmA || epmS);
+    const escorePayload = (hasEcc || hasEpmuras) ? {
+      ecc: ecc ? parseFloat(ecc) : undefined,
+      e: epmE ? parseInt(epmE, 10) : undefined,
+      p: epmP ? parseInt(epmP, 10) : undefined,
+      m: epmM ? parseInt(epmM, 10) : undefined,
+      u: epmU ? parseInt(epmU, 10) : undefined,
+      r: epmR ? parseInt(epmR, 10) : undefined,
+      a: epmA ? parseInt(epmA, 10) : undefined,
+      s: epmS ? parseInt(epmS, 10) : undefined,
+    } : undefined;
+
+    const anyManual = !!(manCernelha || manGarupa || manComprimento || manLarguraGarupa || manPerimetro);
+    const medidasManuaisPayload = anyManual ? {
+      altura_cernelha_cm: manCernelha ? parseFloat(manCernelha) : undefined,
+      altura_garupa_cm: manGarupa ? parseFloat(manGarupa) : undefined,
+      comprimento_corporal_cm: manComprimento ? parseFloat(manComprimento) : undefined,
+      largura_garupa_cm: manLarguraGarupa ? parseFloat(manLarguraGarupa) : undefined,
+      perimetro_toracico_cm: manPerimetro ? parseFloat(manPerimetro) : undefined,
+    } : undefined;
+
     const payload = {
       animal_id: animalId,
       data_hora: new Date().toISOString(),
@@ -116,6 +157,8 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
       idade_meses: idadeMeses,
       keypoints_cm: keypointsCm,
       largura_garupa_cm: larguraGarupa ? parseFloat(larguraGarupa) : undefined,
+      escore: escorePayload,
+      medidas_manuais: medidasManuaisPayload,
     };
 
     setEnviando(true);
@@ -293,6 +336,89 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
         onChange={setPontos}
         frameUrl={frameUrl}
       />
+
+      {/* Secao A: Notas do tecnico (ECC e EPMURAS) */}
+      <div style={{ marginTop: 16, border: "1px solid #e5e7eb", borderRadius: 8 }}>
+        <button
+          type="button"
+          onClick={() => setMostrarEscore((v) => !v)}
+          style={{
+            width: "100%", textAlign: "left", padding: "10px 14px",
+            background: "#f9fafb", border: "none", borderRadius: 8,
+            cursor: "pointer", fontWeight: 600, fontSize: 13, color: "#374151",
+          }}
+        >
+          {mostrarEscore ? "▲" : "▼"} Notas do técnico (ECC e EPMURAS) — opcional
+        </button>
+        {mostrarEscore && (
+          <div style={{ padding: 14, display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <label style={{ fontSize: 13 }}>
+              ECC (1–9):{" "}
+              <input
+                type="number" min="1" max="9" step="0.5" value={ecc}
+                onChange={(e) => setEcc(e.target.value)} style={{ width: 60 }}
+                placeholder="ex: 3.5"
+              />
+            </label>
+            {[
+              ["E (Estrutura)", epmE, setEpmE],
+              ["P (Precocidade)", epmP, setEpmP],
+              ["M (Musculosidade)", epmM, setEpmM],
+              ["U (Umbigo)", epmU, setEpmU],
+              ["R (Racial)", epmR, setEpmR],
+              ["A (Aprumos)", epmA, setEpmA],
+              ["S (Sexualidade)", epmS, setEpmS],
+            ].map(([label, val, setter]) => (
+              <label key={String(label)} style={{ fontSize: 13 }}>
+                {String(label)}:{" "}
+                <input
+                  type="number" min="1" max="6" step="1"
+                  value={String(val)}
+                  onChange={(e) => (setter as React.Dispatch<React.SetStateAction<string>>)(e.target.value)}
+                  style={{ width: 50 }}
+                />
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Secao B: Medidas manuais de referencia (~1:3) */}
+      <div style={{ marginTop: 10, border: "1px solid #e5e7eb", borderRadius: 8 }}>
+        <button
+          type="button"
+          onClick={() => setMostrarManuais((v) => !v)}
+          style={{
+            width: "100%", textAlign: "left", padding: "10px 14px",
+            background: "#f9fafb", border: "none", borderRadius: 8,
+            cursor: "pointer", fontWeight: 600, fontSize: 13, color: "#374151",
+          }}
+        >
+          {mostrarManuais ? "▲" : "▼"} Medidas manuais de referência (~1:3) — opcional
+        </button>
+        {mostrarManuais && (
+          <div style={{ padding: 14, display: "flex", gap: 12, flexWrap: "wrap" }}>
+            {[
+              ["Altura cernelha (cm)", manCernelha, setManCernelha],
+              ["Altura garupa (cm)", manGarupa, setManGarupa],
+              ["Comprimento corporal (cm)", manComprimento, setManComprimento],
+              ["Largura garupa (cm)", manLarguraGarupa, setManLarguraGarupa],
+              ["Perímetro torácico (cm)", manPerimetro, setManPerimetro],
+            ].map(([label, val, setter]) => (
+              <label key={String(label)} style={{ fontSize: 13 }}>
+                {String(label)}:{" "}
+                <input
+                  type="number" min="0" step="0.5"
+                  value={String(val)}
+                  onChange={(e) => (setter as React.Dispatch<React.SetStateAction<string>>)(e.target.value)}
+                  style={{ width: 70 }}
+                  placeholder="cm"
+                />
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
 
       {erro && (
         <div style={{ marginTop: 12, padding: 10, background: "#fee2e2", color: "#991b1b", borderRadius: 6 }}>

@@ -3,12 +3,13 @@ from __future__ import annotations
 import uuid
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
-from sqlalchemy import select
+from sqlalchemy import select as sa_select
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.models.animal import Animal
 from app.models.avaliacao import Avaliacao
+from app.models.dados_geneticos import DadosGeneticos
 from app.schemas.animal import (
     AnimalCreate,
     AnimalHistorico,
@@ -18,6 +19,7 @@ from app.schemas.animal import (
 from app.schemas.avaliacao import AvaliacaoListItem
 from app.schemas.leitura_rfid import ImportacaoResultado
 from app.services.csv_animais import parse_csv_animais
+from app.services.csv_deps import parse_csv_deps
 from app.services.historico import consolidar_historico
 
 router = APIRouter(prefix="/animais", tags=["animais"])
@@ -40,7 +42,7 @@ def listar(
     rgn: str | None = Query(default=None),
     db: Session = Depends(get_db),
 ) -> list[Animal]:
-    stmt = select(Animal)
+    stmt = sa_select(Animal)
     if fazenda_id is not None:
         stmt = stmt.where(Animal.fazenda_id == fazenda_id)
     if lote_id is not None:
@@ -98,7 +100,7 @@ def listar_avaliacoes_do_animal(
     animal_id: uuid.UUID, db: Session = Depends(get_db),
 ) -> list[Avaliacao]:
     stmt = (
-        select(Avaliacao)
+        sa_select(Avaliacao)
         .where(Avaliacao.animal_id == animal_id)
         .order_by(Avaliacao.data_hora.desc())
     )
@@ -131,3 +133,73 @@ def importar_csv_animais(
         importadas += 1
     db.commit()
     return ImportacaoResultado(importadas=importadas, pareadas=importadas, erros=erros)
+
+
+@router.post("/importar-csv-deps", response_model=ImportacaoResultado)
+def importar_csv_deps(
+    fazenda_id: uuid.UUID = Query(...),
+    arquivo: UploadFile = File(...),
+    programa: str | None = Query(default=None),
+    db: Session = Depends(get_db),
+) -> ImportacaoResultado:
+    """Importa DEPs em massa a partir de CSV (PMGZ/ANCP/Geneplus).
+
+    Colunas de identificacao (ao menos uma): brinco, rgn ou rgd
+    Colunas DEP (opcionais): P120, P210, P365, P450, PE, IPP, STAY, PP30, AOL, ACAB, MP120
+    Colunas meta (opcionais): programa, safra, indice (ou dti), deca
+    """
+    try:
+        conteudo = arquivo.file.read().decode("utf-8-sig")
+    except UnicodeDecodeError as e:
+        raise HTTPException(status_code=400, detail=f"arquivo nao e UTF-8: {e}") from e
+
+    linhas, erros = parse_csv_deps(conteudo, fazenda_id, programa=programa)
+    if not linhas and erros:
+        return ImportacaoResultado(importadas=0, pareadas=0, erros=erros)
+
+    importadas = 0
+    pareadas = 0
+    for lin in linhas:
+        # Lookup do animal por brinco/rgn/rgd na fazenda
+        animal: Animal | None = None
+        for campo in ("brinco", "rgn", "rgd"):
+            val = lin.get(campo)
+            if val:
+                stmt = sa_select(Animal).where(
+                    Animal.fazenda_id == fazenda_id,
+                    getattr(Animal, campo) == val,
+                )
+                animal = db.scalars(stmt).first()
+                if animal:
+                    break
+
+        importadas += 1
+        if animal is None:
+            ident = lin.get("brinco") or lin.get("rgn") or lin.get("rgd")
+            erros.append({
+                "linha": str(importadas + 1),
+                "motivo": f"animal nao encontrado na fazenda: {ident}",
+            })
+            continue
+
+        # Upsert DadosGeneticos
+        dg = db.scalars(
+            sa_select(DadosGeneticos).where(DadosGeneticos.animal_id == animal.id),
+        ).first()
+        deps_data = {
+            "programa": lin.get("programa"),
+            "safra": lin.get("safra"),
+            "deps": lin.get("deps"),
+            "indice_programa": lin.get("indice_programa"),
+            "deca": lin.get("deca"),
+            "data_importacao": lin.get("data_importacao"),
+        }
+        if dg is None:
+            db.add(DadosGeneticos(animal_id=animal.id, **deps_data))
+        else:
+            for k, v in deps_data.items():
+                setattr(dg, k, v)
+        pareadas += 1
+
+    db.commit()
+    return ImportacaoResultado(importadas=importadas, pareadas=pareadas, erros=erros)

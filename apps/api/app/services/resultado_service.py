@@ -21,6 +21,7 @@ def salvar_resultado_estruturado(
     db: Session,
     avaliacao: Avaliacao,
     resultado: dict[str, Any],
+    medidas_manuais: dict | None = None,
 ) -> None:
     """Salva o payload do pipeline nas tabelas medida_avaliacao, caixa_virtual_avaliacao
     e predicao_avaliacao. Chamado tanto pelo path sincrono (router) quanto pelo worker."""
@@ -55,6 +56,22 @@ def salvar_resultado_estruturado(
         perimetro_toracico_est_conf=mc_("perimetro_toracico_est"),
         inclinacao_garupa_graus=ang.get("inclinacao_garupa"),
         jarrete_graus=ang.get("jarrete"),
+        # Medidas manuais de referencia (nao sobrescritas pelo worker)
+        altura_cernelha_manual_cm=(
+            medidas_manuais.get("altura_cernelha_cm") if medidas_manuais else None
+        ),
+        altura_garupa_manual_cm=(
+            medidas_manuais.get("altura_garupa_cm") if medidas_manuais else None
+        ),
+        comprimento_corporal_manual_cm=(
+            medidas_manuais.get("comprimento_corporal_cm") if medidas_manuais else None
+        ),
+        largura_garupa_manual_cm=(
+            medidas_manuais.get("largura_garupa_cm") if medidas_manuais else None
+        ),
+        perimetro_toracico_manual_cm=(
+            medidas_manuais.get("perimetro_toracico_cm") if medidas_manuais else None
+        ),
     )
     db.add(medida)
 

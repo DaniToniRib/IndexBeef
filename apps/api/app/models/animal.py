@@ -13,6 +13,9 @@ from app.models.enums import Sexo, SituacaoAnimal, Variedade
 
 if TYPE_CHECKING:
     from app.models.avaliacao import Avaliacao
+    from app.models.dados_geneticos import DadosGeneticos
+    from app.models.evento_reprodutivo import EventoReprodutivo
+    from app.models.exame_andrologico import ExameAndrologico
     from app.models.identificacao_eletronica import IdentificacaoEletronica
     from app.models.lote import Lote
     from app.models.pesagem import Pesagem
@@ -72,4 +75,16 @@ class Animal(SyncMixin, Base):
     )
     mae: Mapped[Animal | None] = relationship(
         "Animal", remote_side="Animal.id", foreign_keys=[mae_id],
+    )
+
+    dados_geneticos: Mapped[DadosGeneticos | None] = relationship(
+        back_populates="animal", cascade="all, delete-orphan", uselist=False,
+    )
+    eventos_reprodutivos: Mapped[list[EventoReprodutivo]] = relationship(
+        foreign_keys="EventoReprodutivo.animal_id",
+        back_populates="animal",
+        cascade="all, delete-orphan",
+    )
+    exames_andrologicos: Mapped[list[ExameAndrologico]] = relationship(
+        back_populates="animal", cascade="all, delete-orphan",
     )

@@ -19,6 +19,8 @@ from app.core.db import get_db
 from app.core.redis_queue import get_queue
 from app.models.avaliacao import Avaliacao
 from app.models.enums import StatusAvaliacao
+from app.models.escore_avaliacao import EscoreAvaliacao
+from app.models.medida_avaliacao import MedidaAvaliacao
 from app.schemas.avaliacao import AvaliacaoCreate, AvaliacaoListItem, AvaliacaoRead
 from app.services.resultado_service import salvar_resultado_estruturado
 
@@ -60,6 +62,31 @@ def criar_avaliacao(payload: AvaliacaoCreate, db: Session = Depends(get_db)) -> 
 
     fila = get_queue()
     if fila is not None:
+        # Pre-criar MedidaAvaliacao com medidas manuais para que o ON CONFLICT do worker
+        # nao as sobrescreva (o worker so faz UPDATE SET nas colunas do pipeline)
+        if payload.medidas_manuais is not None:
+            mm = payload.medidas_manuais
+            db.add(MedidaAvaliacao(
+                avaliacao_id=avaliacao.id,
+                altura_cernelha_manual_cm=mm.altura_cernelha_cm,
+                altura_garupa_manual_cm=mm.altura_garupa_cm,
+                comprimento_corporal_manual_cm=mm.comprimento_corporal_cm,
+                largura_garupa_manual_cm=mm.largura_garupa_cm,
+                perimetro_toracico_manual_cm=mm.perimetro_toracico_cm,
+            ))
+        if payload.escore is not None:
+            e = payload.escore
+            db.add(EscoreAvaliacao(
+                avaliacao_id=avaliacao.id,
+                ecc_final=e.ecc,
+                e_final=e.e,
+                p_final=e.p,
+                m_final=e.m,
+                u_final=e.u,
+                r_final=e.r,
+                a_final=e.a,
+                s_final=e.s,
+            ))
         fila.enqueue(
             "indexbeef_worker.tasks.processar_avaliacao",
             str(avaliacao.id),
@@ -89,7 +116,21 @@ def criar_avaliacao(payload: AvaliacaoCreate, db: Session = Depends(get_db)) -> 
     avaliacao.resultado = resultado
     avaliacao.versao_pipeline = VERSAO_PIPELINE
     avaliacao.status = StatusAvaliacao.concluida
-    salvar_resultado_estruturado(db, avaliacao, resultado)
+    mm_dict = payload.medidas_manuais.model_dump() if payload.medidas_manuais else None
+    salvar_resultado_estruturado(db, avaliacao, resultado, mm_dict)
+    if payload.escore is not None:
+        e = payload.escore
+        db.add(EscoreAvaliacao(
+            avaliacao_id=avaliacao.id,
+            ecc_final=e.ecc,
+            e_final=e.e,
+            p_final=e.p,
+            m_final=e.m,
+            u_final=e.u,
+            r_final=e.r,
+            a_final=e.a,
+            s_final=e.s,
+        ))
     db.commit()
     db.refresh(avaliacao)
     return avaliacao

@@ -135,3 +135,18 @@ class TipoGeofence(str, enum.Enum):
 class TipoEventoGeofence(str, enum.Enum):
     entrada = "entrada"
     saida = "saida"
+
+
+class TipoEventoReprodutivo(str, enum.Enum):
+    cobertura = "cobertura"
+    iatf = "iatf"
+    diagnostico_gestacao = "diagnostico_gestacao"
+    parto = "parto"
+    aborto = "aborto"
+    desmama = "desmama"
+
+
+class ResultadoAndrologico(str, enum.Enum):
+    apto = "apto"
+    inapto = "inapto"
+    questionavel = "questionavel"

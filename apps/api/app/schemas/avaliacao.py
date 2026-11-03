@@ -10,12 +10,23 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.captura import CapturaRead
+from app.schemas.escore_avaliacao import EscoreInput, EscoreRead
 
 
 class KeypointCm(BaseModel):
     id: int = Field(ge=0, le=17)
     x: float
     y: float
+
+
+class MedidasManuaisInput(BaseModel):
+    """Medidas de referencia coletadas com instrumentos fisicos (subconjunto ~1:3 dos animais)."""
+
+    altura_cernelha_cm: float | None = None
+    altura_garupa_cm: float | None = None
+    comprimento_corporal_cm: float | None = None
+    largura_garupa_cm: float | None = None
+    perimetro_toracico_cm: float | None = None
 
 
 class AvaliacaoCreate(BaseModel):
@@ -29,6 +40,9 @@ class AvaliacaoCreate(BaseModel):
     largura_torax_cm: float | None = Field(default=None, gt=0)
     observacoes: str | None = None
     avaliador_id: uuid.UUID | None = None
+    # Notas do tecnico (campo)
+    escore: EscoreInput | None = None
+    medidas_manuais: MedidasManuaisInput | None = None
 
 
 # --- Schemas de leitura para tabelas estruturadas ---
@@ -97,6 +111,7 @@ class AvaliacaoRead(BaseModel):
     caixa_virtual: CaixaVirtualRead | None = None
     predicoes: list[PredicaoRead] = []
     capturas: list[CapturaRead] = []
+    escore: EscoreRead | None = None
 
 
 class AvaliacaoListItem(BaseModel):

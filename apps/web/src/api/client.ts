@@ -112,6 +112,37 @@ export interface EventoGeofence {
   timestamp: string;
 }
 
+export interface EscoreInput {
+  ecc?: number | null;
+  e?: number | null;
+  p?: number | null;
+  m?: number | null;
+  u?: number | null;
+  r?: number | null;
+  a?: number | null;
+  s?: number | null;
+}
+
+export interface MedidasManuaisInput {
+  altura_cernelha_cm?: number | null;
+  altura_garupa_cm?: number | null;
+  comprimento_corporal_cm?: number | null;
+  largura_garupa_cm?: number | null;
+  perimetro_toracico_cm?: number | null;
+}
+
+export interface EscoreRead {
+  ecc_final?: number | null;
+  frame_score?: number | null;
+  e_final?: number | null;
+  p_final?: number | null;
+  m_final?: number | null;
+  u_final?: number | null;
+  r_final?: number | null;
+  a_final?: number | null;
+  s_final?: number | null;
+}
+
 export interface MedidasAvaliacao {
   altura_cernelha_cm?: number | null;
   altura_cernelha_conf?: number | null;
@@ -158,6 +189,7 @@ export interface Avaliacao {
   caixa_virtual?: CaixaVirtualAvaliacao | null;
   predicoes?: PredicaoAvaliacao[];
   capturas?: CapturaItem[];
+  escore?: EscoreRead | null;
 }
 
 export interface FrameExtraidoResponse {

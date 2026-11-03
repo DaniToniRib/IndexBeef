@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import io
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import patch
 
 import pytest
@@ -112,7 +112,7 @@ def db_session(db_engine):
 def _avaliacao(session) -> Avaliacao:
     av = Avaliacao(
         animal_id=uuid.uuid4(),
-        data_hora=datetime.now(tz=timezone.utc),
+        data_hora=datetime.now(tz=UTC),
         status=StatusAvaliacao.processando,
     )
     session.add(av)

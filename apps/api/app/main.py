@@ -9,6 +9,8 @@ from app.routers import (
     capturas,
     dashboard,
     dispositivos,
+    eventos_reprodutivos,
+    exames_andrologicos,
     fazendas,
     gps,
     identificacoes,
@@ -39,6 +41,8 @@ app.include_router(avaliacoes.router)
 app.include_router(capturas.router)
 app.include_router(dashboard.router)
 app.include_router(relatorios.router)
+app.include_router(eventos_reprodutivos.router)
+app.include_router(exames_andrologicos.router)
 
 
 @app.get("/health")
