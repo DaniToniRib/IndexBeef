@@ -8,12 +8,14 @@ from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.models.animal import Animal
+from app.models.avaliacao import Avaliacao
 from app.schemas.animal import (
     AnimalCreate,
     AnimalHistorico,
     AnimalRead,
     AnimalUpdate,
 )
+from app.schemas.avaliacao import AvaliacaoListItem
 from app.services.historico import consolidar_historico
 
 router = APIRouter(prefix="/animais", tags=["animais"])
@@ -87,3 +89,15 @@ def historico(animal_id: uuid.UUID, db: Session = Depends(get_db)) -> AnimalHist
         return consolidar_historico(db, animal_id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
+
+
+@router.get("/{animal_id}/avaliacoes", response_model=list[AvaliacaoListItem])
+def listar_avaliacoes_do_animal(
+    animal_id: uuid.UUID, db: Session = Depends(get_db),
+) -> list[Avaliacao]:
+    stmt = (
+        select(Avaliacao)
+        .where(Avaliacao.animal_id == animal_id)
+        .order_by(Avaliacao.data_hora.desc())
+    )
+    return list(db.scalars(stmt).all())

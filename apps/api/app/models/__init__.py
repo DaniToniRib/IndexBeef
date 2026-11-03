@@ -9,6 +9,7 @@ from app.models.aplicacao_sanitaria import AplicacaoSanitaria
 from app.models.atendimento_veterinario import AtendimentoVeterinario
 from app.models.avaliacao import Avaliacao
 from app.models.base import Base, SyncMixin
+from app.models.caixa_virtual_avaliacao import CaixaVirtualAvaliacao
 from app.models.campanha import Campanha
 from app.models.captura import Captura
 from app.models.dispositivo import Dispositivo
@@ -18,7 +19,9 @@ from app.models.geofence import Geofence
 from app.models.identificacao_eletronica import IdentificacaoEletronica
 from app.models.leitura_rfid import LeituraRfid
 from app.models.lote import Lote
+from app.models.medida_avaliacao import MedidaAvaliacao
 from app.models.pesagem import Pesagem
+from app.models.predicao_avaliacao import PredicaoAvaliacao
 from app.models.telemetria_gps import TelemetriaGps
 
 __all__ = [
@@ -27,6 +30,7 @@ __all__ = [
     "AtendimentoVeterinario",
     "Avaliacao",
     "Base",
+    "CaixaVirtualAvaliacao",
     "Campanha",
     "Captura",
     "Dispositivo",
@@ -36,7 +40,9 @@ __all__ = [
     "IdentificacaoEletronica",
     "LeituraRfid",
     "Lote",
+    "MedidaAvaliacao",
     "Pesagem",
+    "PredicaoAvaliacao",
     "SyncMixin",
     "TelemetriaGps",
 ]

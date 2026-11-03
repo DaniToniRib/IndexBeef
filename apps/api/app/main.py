@@ -6,6 +6,7 @@ from app.routers import (
     atendimentos_veterinarios,
     avaliacoes,
     campanhas,
+    dashboard,
     dispositivos,
     fazendas,
     gps,
@@ -13,6 +14,7 @@ from app.routers import (
     leituras_rfid,
     lotes,
     pesagens,
+    relatorios,
 )
 
 app = FastAPI(
@@ -33,6 +35,8 @@ app.include_router(aplicacoes_sanitarias.router)
 app.include_router(atendimentos_veterinarios.router)
 app.include_router(gps.router)
 app.include_router(avaliacoes.router)
+app.include_router(dashboard.router)
+app.include_router(relatorios.router)
 
 
 @app.get("/health")

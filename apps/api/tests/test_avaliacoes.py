@@ -99,12 +99,19 @@ def test_post_cria_avaliacao_e_retorna_resultado(client: TestClient, animal_pers
     r = client.post("/avaliacoes", json=payload)
     assert r.status_code == 201, r.text
     body = r.json()
+    # Path sincrono (Redis indisponivel em testes) -> concluida imediatamente.
     assert body["status"] == "concluida"
     assert body["versao_pipeline"] == "0.1.0"
     assert body["resultado"] is not None
     assert body["resultado"]["medidas_cm"]["altura_cernelha"]["valor"] == pytest.approx(80.0)
     assert body["resultado"]["peso"]["peso_kg"] > 0
     assert len(body["resultado"]["projecao_peso"]["pontos"]) == 3
+    # Tabelas estruturadas (Item 4)
+    assert body["medida"] is not None
+    assert float(body["medida"]["altura_cernelha_cm"]) == pytest.approx(80.0)
+    assert body["caixa_virtual"] is not None
+    assert float(body["caixa_virtual"]["c_cm"]) > 0
+    assert len(body["predicoes"]) >= 4  # peso_atual + 3 projecoes
 
 
 def test_get_retorna_avaliacao_persistida(client: TestClient, animal_persistido) -> None:
@@ -176,3 +183,62 @@ def test_post_rejeita_idade_negativa(client: TestClient, animal_persistido) -> N
     }
     r = client.post("/avaliacoes", json=payload)
     assert r.status_code == 422  # Pydantic (gt=0)
+
+
+def test_listar_avaliacoes_do_animal(client: TestClient, animal_persistido) -> None:
+    payload = {
+        "animal_id": str(animal_persistido.id),
+        "data_hora": datetime.now(UTC).isoformat(),
+        "sexo": "femea",
+        "idade_meses": 18.0,
+        "keypoints_cm": _kp_payload(),
+    }
+    r = client.post("/avaliacoes", json=payload)
+    assert r.status_code == 201
+    aid = r.json()["id"]
+
+    r2 = client.get(f"/animais/{animal_persistido.id}/avaliacoes")
+    assert r2.status_code == 200
+    ids = [a["id"] for a in r2.json()]
+    assert aid in ids
+
+    r3 = client.get(f"/avaliacoes?animal_id={animal_persistido.id}")
+    assert r3.status_code == 200
+    assert any(a["id"] == aid for a in r3.json())
+
+
+def test_tabelas_estruturadas_populadas(client: TestClient, animal_persistido) -> None:
+    payload = {
+        "animal_id": str(animal_persistido.id),
+        "data_hora": datetime.now(UTC).isoformat(),
+        "sexo": "macho",
+        "idade_meses": 24.0,
+        "keypoints_cm": _kp_payload(),
+        "largura_garupa_cm": 40.0,
+    }
+    r = client.post("/avaliacoes", json=payload)
+    assert r.status_code == 201
+    aid = r.json()["id"]
+
+    r2 = client.get(f"/avaliacoes/{aid}")
+    assert r2.status_code == 200
+    body = r2.json()
+
+    medida = body["medida"]
+    assert medida is not None
+    assert float(medida["altura_cernelha_cm"]) == pytest.approx(80.0)
+    assert float(medida["largura_garupa_cm"]) == pytest.approx(40.0)
+    assert medida["inclinacao_garupa_graus"] is not None
+
+    cv = body["caixa_virtual"]
+    assert cv is not None
+    assert float(cv["c_cm"]) > 0
+    assert float(cv["p_cm"]) > 0
+    # IPL so existe com area_tronco_cm2; compacidade e indice_comprimento sempre existem
+    assert cv["compacidade"] is not None
+
+    predicoes = {p["tipo"]: p for p in body["predicoes"]}
+    assert "peso_atual" in predicoes
+    assert float(predicoes["peso_atual"]["valor"]) > 0
+    assert "peso_18m" in predicoes
+    assert float(predicoes["peso_18m"]["faixa_min"]) > 0

@@ -1,0 +1,229 @@
+import { useEffect, useState } from "react";
+import { API_URL, get, post, type Animal, type Avaliacao, type Fazenda } from "../api/client";
+import { KeypointsCanvas } from "../components/KeypointsCanvas";
+import { pontosIniciaisPadrao } from "../keypoint-utils";
+import type { Keypoint } from "../types";
+
+const LARGURA = 1280;
+const ALTURA = 720;
+
+interface Props {
+  animalIdInicial?: string;
+  onConcluido: (animalId: string) => void;
+  onCancelar: () => void;
+}
+
+export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Props) {
+  const [fazendas, setFazendas] = useState<Fazenda[]>([]);
+  const [fazendaId, setFazendaId] = useState("");
+  const [animais, setAnimais] = useState<Animal[]>([]);
+  const [animalId, setAnimalId] = useState(animalIdInicial ?? "");
+  const [animal, setAnimal] = useState<Animal | null>(null);
+
+  const [pontos, setPontos] = useState<Keypoint[]>(() => pontosIniciaisPadrao(LARGURA, ALTURA));
+  const [frameUrl, setFrameUrl] = useState<string | undefined>(undefined);
+  const [pxPorCm, setPxPorCm] = useState("5");
+  const [larguraGarupa, setLarguraGarupa] = useState("");
+  const [idadeMesesOverride, setIdadeMesesOverride] = useState("");
+
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    get<Fazenda[]>("/fazendas").then(setFazendas).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!fazendaId) return;
+    get<Animal[]>(`/animais?fazenda_id=${fazendaId}`).then(setAnimais).catch(() => {});
+  }, [fazendaId]);
+
+  useEffect(() => {
+    if (!animalId) { setAnimal(null); return; }
+    get<Animal>(`/animais/${animalId}`).then(setAnimal).catch(() => {});
+  }, [animalId]);
+
+  function escolherArquivo(ev: React.ChangeEvent<HTMLInputElement>) {
+    const file = ev.target.files?.[0];
+    if (!file) return;
+    if (frameUrl) URL.revokeObjectURL(frameUrl);
+    setFrameUrl(URL.createObjectURL(file));
+  }
+
+  function calcularIdadeMeses(): number | null {
+    if (idadeMesesOverride) return parseFloat(idadeMesesOverride);
+    if (!animal?.nascimento) return null;
+    const nasc = new Date(animal.nascimento);
+    const hoje = new Date();
+    const meses = (hoje.getFullYear() - nasc.getFullYear()) * 12 +
+      (hoje.getMonth() - nasc.getMonth());
+    return Math.max(1, meses);
+  }
+
+  async function enviar() {
+    if (!animalId || !animal) { setErro("Selecione o animal."); return; }
+    const scale = parseFloat(pxPorCm);
+    if (!scale || scale <= 0) { setErro("px/cm inválido."); return; }
+    const idadeMeses = calcularIdadeMeses();
+    if (!idadeMeses || idadeMeses <= 0) {
+      setErro("Informe a idade em meses ou cadastre a data de nascimento do animal."); return;
+    }
+
+    const sexo = animal.sexo === "M" ? "macho" : "femea";
+    const keypointsCm = pontos.map((p) => ({
+      id: p.id,
+      x: p.x / scale,
+      y: p.y / scale,
+    }));
+
+    const payload = {
+      animal_id: animalId,
+      data_hora: new Date().toISOString(),
+      sexo,
+      idade_meses: idadeMeses,
+      keypoints_cm: keypointsCm,
+      largura_garupa_cm: larguraGarupa ? parseFloat(larguraGarupa) : undefined,
+    };
+
+    setEnviando(true);
+    setErro(null);
+    try {
+      await post<Avaliacao>("/avaliacoes", payload);
+      onConcluido(animalId);
+    } catch (e) {
+      setErro(String(e));
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <section style={{ maxWidth: 1024, margin: "0 auto", padding: 24 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <h2 style={{ margin: 0 }}>Nova avaliação</h2>
+        <button type="button" onClick={onCancelar} style={{ marginLeft: "auto" }}>
+          Cancelar
+        </button>
+      </div>
+
+      {/* Seleção do animal (se não foi pré-preenchido) */}
+      {!animalIdInicial && (
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16, padding: 12, background: "#f9fafb", borderRadius: 8 }}>
+          <label>
+            Fazenda:{" "}
+            <select value={fazendaId} onChange={(e) => { setFazendaId(e.target.value); setAnimalId(""); }}>
+              <option value="">(selecione)</option>
+              {fazendas.map((f) => <option key={f.id} value={f.id}>{f.nome}</option>)}
+            </select>
+          </label>
+          <label>
+            Animal:{" "}
+            <select value={animalId} onChange={(e) => setAnimalId(e.target.value)} disabled={!fazendaId}>
+              <option value="">(selecione)</option>
+              {animais.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.brinco ?? "(sem brinco)"} · {a.sexo}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
+
+      {animal && (
+        <div style={{ marginBottom: 12, fontSize: 13, color: "#374151" }}>
+          Animal: <strong>{animal.brinco ?? "(sem brinco)"}</strong> · {animal.sexo} ·{" "}
+          {calcularIdadeMeses() ? `${calcularIdadeMeses()!.toFixed(1)} meses` : "idade desconhecida"}
+        </div>
+      )}
+
+      {/* Parâmetros de calibração */}
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16, padding: 12, background: "#f9fafb", borderRadius: 8 }}>
+        <label style={{ fontSize: 13 }}>
+          Escala px/cm:{" "}
+          <input
+            type="number"
+            min="0.1"
+            step="0.1"
+            value={pxPorCm}
+            onChange={(e) => setPxPorCm(e.target.value)}
+            style={{ width: 70 }}
+          />
+          <span style={{ marginLeft: 6, color: "#6b7280" }}>
+            (placa 40 cm = ??? px → scale = px÷40)
+          </span>
+        </label>
+        <label style={{ fontSize: 13 }}>
+          Largura garupa (cm):{" "}
+          <input
+            type="number"
+            min="0"
+            step="0.5"
+            value={larguraGarupa}
+            onChange={(e) => setLarguraGarupa(e.target.value)}
+            placeholder="opcional"
+            style={{ width: 70 }}
+          />
+        </label>
+        {!animal?.nascimento && (
+          <label style={{ fontSize: 13 }}>
+            Idade (meses):{" "}
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={idadeMesesOverride}
+              onChange={(e) => setIdadeMesesOverride(e.target.value)}
+              placeholder="obrigatório"
+              style={{ width: 80 }}
+            />
+          </label>
+        )}
+      </div>
+
+      {/* Imagem + keypoints */}
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
+        <input type="file" accept="image/*" onChange={escolherArquivo} aria-label="Carregar frame" />
+        <button type="button" onClick={() => setPontos(pontosIniciaisPadrao(LARGURA, ALTURA))}>
+          Reiniciar pontos
+        </button>
+        <span style={{ marginLeft: "auto", fontSize: 13, color: "#374151" }}>
+          Corrigidos: <strong>{pontos.filter((p) => p.corrigido).length}</strong> / {pontos.length}
+        </span>
+      </div>
+
+      <KeypointsCanvas
+        pontos={pontos}
+        largura={LARGURA}
+        altura={ALTURA}
+        onChange={setPontos}
+        frameUrl={frameUrl}
+      />
+
+      {erro && (
+        <div style={{ marginTop: 12, padding: 10, background: "#fee2e2", color: "#991b1b", borderRadius: 6 }}>
+          {erro}
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={enviar}
+        disabled={enviando || !animalId}
+        style={{
+          marginTop: 16,
+          padding: "10px 28px",
+          background: enviando ? "#d1fae5" : "#059669",
+          color: "white",
+          border: "none",
+          borderRadius: 6,
+          fontSize: 15,
+          fontWeight: 600,
+          cursor: enviando ? "default" : "pointer",
+        }}
+      >
+        {enviando ? "Enviando…" : "Enviar avaliação"}
+      </button>
+    </section>
+  );
+}
