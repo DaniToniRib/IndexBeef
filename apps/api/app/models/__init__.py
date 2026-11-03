@@ -12,11 +12,14 @@ from app.models.base import Base, SyncMixin
 from app.models.campanha import Campanha
 from app.models.captura import Captura
 from app.models.dispositivo import Dispositivo
+from app.models.evento_geofence import EventoGeofence
 from app.models.fazenda import Fazenda
+from app.models.geofence import Geofence
 from app.models.identificacao_eletronica import IdentificacaoEletronica
 from app.models.leitura_rfid import LeituraRfid
 from app.models.lote import Lote
 from app.models.pesagem import Pesagem
+from app.models.telemetria_gps import TelemetriaGps
 
 __all__ = [
     "Animal",
@@ -27,10 +30,13 @@ __all__ = [
     "Campanha",
     "Captura",
     "Dispositivo",
+    "EventoGeofence",
     "Fazenda",
+    "Geofence",
     "IdentificacaoEletronica",
     "LeituraRfid",
     "Lote",
     "Pesagem",
     "SyncMixin",
+    "TelemetriaGps",
 ]

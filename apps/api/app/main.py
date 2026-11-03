@@ -8,6 +8,7 @@ from app.routers import (
     campanhas,
     dispositivos,
     fazendas,
+    gps,
     identificacoes,
     leituras_rfid,
     lotes,
@@ -30,6 +31,7 @@ app.include_router(leituras_rfid.router)
 app.include_router(campanhas.router)
 app.include_router(aplicacoes_sanitarias.router)
 app.include_router(atendimentos_veterinarios.router)
+app.include_router(gps.router)
 app.include_router(avaliacoes.router)
 
 

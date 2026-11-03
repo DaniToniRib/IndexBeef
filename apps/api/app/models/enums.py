@@ -114,3 +114,24 @@ class StatusCampanha(str, enum.Enum):
     em_andamento = "em_andamento"
     concluida = "concluida"
     cancelada = "cancelada"
+
+
+class EstadoAtividadeGps(str, enum.Enum):
+    """Estado derivado do acelerometro do tracker (ver docs/11 §3)."""
+
+    grazing = "grazing"  # pastando
+    walking = "walking"  # andando
+    resting = "resting"  # descansando
+    desconhecido = "desconhecido"
+
+
+class TipoGeofence(str, enum.Enum):
+    pasto = "pasto"  # delimitacao de pastagem
+    limite = "limite"  # limite da fazenda (fuga se sair)
+    alerta = "alerta"  # area de risco (barranco, matagal denso)
+    curral = "curral"
+
+
+class TipoEventoGeofence(str, enum.Enum):
+    entrada = "entrada"
+    saida = "saida"
