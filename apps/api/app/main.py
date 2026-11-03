@@ -14,6 +14,7 @@ from app.routers import (
     fazendas,
     gps,
     identificacoes,
+    indices,
     leituras_rfid,
     lotes,
     modelo_versao,
@@ -47,6 +48,7 @@ app.include_router(relatorio.router)
 app.include_router(modelo_versao.router)
 app.include_router(eventos_reprodutivos.router)
 app.include_router(exames_andrologicos.router)
+app.include_router(indices.router)
 
 
 @app.get("/health")

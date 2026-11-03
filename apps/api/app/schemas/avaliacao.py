@@ -123,3 +123,51 @@ class AvaliacaoListItem(BaseModel):
     status: str
     versao_pipeline: str | None
     observacoes: str | None
+
+
+class IndiceItemResponse(BaseModel):
+    tipo: str
+    valor: float
+    explicacao: list[dict[str, Any]]
+
+
+class IndiceResultadoResponse(BaseModel):
+    avaliacao_id: str
+    frame_score: float | None
+    epmuras_sugerido: dict[str, int | None]
+    gmd_kg_dia: float | None
+    indices: list[IndiceItemResponse]
+
+
+class RankingItemResponse(BaseModel):
+    animal_id: str
+    brinco: str | None
+    nome: str | None
+    valor: float
+    posicao: int
+    confianca: float | None
+
+
+class RankingResponse(BaseModel):
+    total: int
+    itens: list[RankingItemResponse]
+
+
+class MatrizPrenheResponse(BaseModel):
+    animal_id: str
+    brinco: str | None
+    data_diagnostico: Any
+    ecc_atual: float | None
+    alerta_ecc: bool
+
+
+class GmdResponse(BaseModel):
+    gmd_kg_dia: float | None
+    pesagens: list[dict[str, Any]]
+
+
+class ProjecaoPesoResponse(BaseModel):
+    peso_atual_kg: float | None
+    idade_meses: float | None
+    frame_score: float | None
+    projecoes: list[dict[str, Any]]

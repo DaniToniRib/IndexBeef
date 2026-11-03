@@ -175,6 +175,7 @@ export interface PredicaoAvaliacao {
   faixa_min?: number | null;
   faixa_max?: number | null;
   metodo?: string | null;
+  explicacao?: Array<{ componente: string; contribuicao_pct: number }> | null;
 }
 
 export interface Avaliacao {

@@ -62,6 +62,13 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
   const [erro, setErro] = useState<string | null>(null);
   const [enfileirado, setEnfileirado] = useState(false);
 
+  // Frame Score & EPMURAS calculados apos envio
+  const [indicesCalculados, setIndicesCalculados] = useState<{
+    frame_score: number | null;
+    epmuras_sugerido: Record<string, number | null>;
+  } | null>(null);
+  const [mostrarIndices, setMostrarIndices] = useState(false);
+
   useEffect(() => {
     cacheFazendas().then(setFazendas).catch(() => {});
   }, []);
@@ -179,6 +186,19 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
             tipo: "foto",
             vista: "lateral",
           }).catch(() => {});
+        }
+        // Calcula indices em background (fire-and-forget)
+        if (resultado) {
+          const av = resultado as { id: string };
+          post<{ frame_score: number | null; epmuras_sugerido: Record<string, number | null> }>(
+            `/indices/avaliacoes/${av.id}/calcular`,
+            {},
+          )
+            .then((r) => {
+              setIndicesCalculados(r);
+              setMostrarIndices(true);
+            })
+            .catch(() => {});
         }
         onConcluido(animalId);
       }
@@ -430,6 +450,46 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
       {enfileirado && (
         <div style={{ marginTop: 12, padding: 10, background: "#dbeafe", color: "#1d4ed8", borderRadius: 6 }}>
           Avaliação salva para sincronizar quando a conexão for restaurada.
+        </div>
+      )}
+
+      {indicesCalculados && (
+        <div style={{ marginTop: 12, border: "1px solid #d1fae5", borderRadius: 8 }}>
+          <button
+            type="button"
+            onClick={() => setMostrarIndices((v) => !v)}
+            style={{
+              width: "100%", textAlign: "left", padding: "10px 14px",
+              background: "#ecfdf5", border: "none", borderRadius: 8,
+              cursor: "pointer", fontWeight: 600, fontSize: 13, color: "#065f46",
+            }}
+          >
+            {mostrarIndices ? "▲" : "▼"} Frame Score & EPMURAS sugerido
+            <span
+              style={{ marginLeft: 8, fontSize: 11, fontWeight: 400, color: "#6b7280" }}
+              title="Sugestão automática — confirme com avaliação técnica."
+            >
+              Sugestão automática — confirme com avaliação técnica.
+            </span>
+          </button>
+          {mostrarIndices && (
+            <div style={{ padding: 14, display: "flex", gap: 16, flexWrap: "wrap" }}>
+              <div>
+                <span style={{ fontSize: 12, color: "#6b7280" }}>Frame Score</span>
+                <div style={{ fontSize: 20, fontWeight: 700 }}>
+                  {indicesCalculados.frame_score !== null ? indicesCalculados.frame_score : "—"}
+                </div>
+              </div>
+              {Object.entries(indicesCalculados.epmuras_sugerido).map(([letra, val]) => (
+                <div key={letra}>
+                  <span style={{ fontSize: 12, color: "#6b7280" }}>{letra}</span>
+                  <div style={{ fontSize: 20, fontWeight: 700 }}>
+                    {val !== null ? val : "—"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

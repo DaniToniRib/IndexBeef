@@ -55,10 +55,22 @@ Objetivo: **foto ou vídeo entra, ficha do animal sai**, com fotos e vídeos de 
 | Keypoints: PCK@0.05 | > 85% |
 
 ## Fase 4: Índices (semanas 15–20)
-- [ ] Frame score, ECC por imagem, EPMURAS assistido
-- [ ] Índices Garrote, Reprodutor e Matriz (calibrados com o técnico)
-- [ ] Ranking do lote, histórico, GMD e projeção de peso
-- [ ] Acompanhamento mensal das matrizes prenhes
+- [x] Frame score, ECC por imagem, EPMURAS assistido
+- [x] Índices Garrote, Reprodutor e Matriz (calibrados com o técnico)
+- [x] Ranking do lote, histórico, GMD e projeção de peso
+- [x] Acompanhamento mensal das matrizes prenhes
+
+### Implementado 2026-11-03
+- `apps/api/alembic/versions/0011_fase4_indices.py` — migration: `explicacao JSON` e `modelo_versao_id UUID FK` em `predicao_avaliacao`
+- `apps/api/app/models/predicao_avaliacao.py` — campos `explicacao` e `modelo_versao_id` adicionados ao modelo
+- `apps/api/app/services/indices_service.py` — funções puras: `calcular_frame_score`, `sugerir_epmuras`, `calcular_gmd`, `calcular_projecao_brody`, `calcular_indice`, `montar_componentes_garrote/reprodutor/matriz`; carrega `config/indices.yaml` uma vez ao importar
+- `apps/api/app/routers/indices.py` — 5 endpoints: `POST /indices/avaliacoes/{id}/calcular`, `GET /lotes/{id}/ranking`, `GET /lotes/{id}/matrizes-prenhes`, `GET /animais/{id}/gmd`, `GET /animais/{id}/projecao-peso`
+- `apps/api/app/schemas/avaliacao.py` — novos schemas: `IndiceResultadoResponse`, `RankingResponse`, `MatrizPrenheResponse`, `GmdResponse`, `ProjecaoPesoResponse`
+- `apps/api/tests/test_fase4.py` — 16 testes, todos verdes
+- `apps/web/src/pages/NovaAvaliacao.tsx` — dispara `POST /indices/…/calcular` após envio; caixa colapsável "Frame Score & EPMURAS sugerido"
+- `apps/web/src/pages/FichaAnimal.tsx` — cards de índices com top-3 componentes da `explicacao`
+- `apps/web/src/pages/RankingLote.tsx` — tabela de ranking com barra de progresso, dropdown de índice, loading e empty state
+- `apps/web/src/App.tsx` — rota `ranking-lote` → `<RankingLote />`
 
 ## Fase 5: Nuvem e escala
 - [ ] Sincronização fazenda ↔ nuvem

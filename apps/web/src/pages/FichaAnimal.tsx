@@ -11,6 +11,7 @@ import {
   type AvaliacaoListItem,
   type EventoGeofence,
   type Fazenda,
+  type PredicaoAvaliacao,
 } from "../api/client";
 import { AvaliacaoResultado } from "../components/AvaliacaoResultado";
 import { GraficoPeso } from "../components/GraficoPeso";
@@ -233,6 +234,7 @@ export function FichaAnimal({ onNovaAvaliacao }: Props) {
                 <button type="button" style={{ fontSize: 12 }} onClick={() => setAvaliacaoDetalhe(null)}>Fechar</button>
               </div>
               <AvaliacaoResultado avaliacao={avaliacaoDetalhe} />
+              <IndicesCards predicoes={avaliacaoDetalhe.predicoes ?? []} />
             </div>
           )}
 
@@ -277,5 +279,53 @@ function StatusChip({ status }: { status: string }) {
     }}>
       {STATUS_LABEL[status] ?? status}
     </span>
+  );
+}
+
+const INDICE_LABEL: Record<string, string> = {
+  indice_garrote: "Indice Garrote",
+  indice_reprodutor: "Indice Reprodutor",
+  indice_matriz: "Indice Matriz",
+};
+
+function IndicesCards({ predicoes }: { predicoes: PredicaoAvaliacao[] }) {
+  const indices = predicoes.filter((p) =>
+    ["indice_garrote", "indice_reprodutor", "indice_matriz"].includes(p.tipo),
+  );
+  if (indices.length === 0) return null;
+  return (
+    <div style={{ marginTop: 16 }}>
+      <strong style={{ fontSize: 13, color: "#374151" }}>Indices de Aptidao</strong>
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 8 }}>
+        {indices.map((idx) => (
+          <div
+            key={idx.tipo}
+            style={{
+              padding: 12, background: "#f0fdf4", borderRadius: 8,
+              border: "1px solid #bbf7d0", minWidth: 160,
+            }}
+          >
+            <div style={{ fontSize: 12, color: "#166534", fontWeight: 600, marginBottom: 4 }}>
+              {INDICE_LABEL[idx.tipo] ?? idx.tipo}
+            </div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: "#15803d" }}>
+              {idx.valor !== null && idx.valor !== undefined ? Number(idx.valor).toFixed(1) : "—"}
+            </div>
+            {idx.explicacao && idx.explicacao.length > 0 && (
+              <ul style={{ margin: "6px 0 0", padding: "0 0 0 14px", fontSize: 11, color: "#4b5563" }}>
+                {idx.explicacao.slice(0, 3).map((c) => (
+                  <li key={c.componente}>
+                    {c.componente}: {c.contribuicao_pct.toFixed(1)}%
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div style={{ marginTop: 6, fontSize: 10, color: "#9ca3af" }}>
+              Recomendacao de triagem — confirme com avaliacao tecnica.
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

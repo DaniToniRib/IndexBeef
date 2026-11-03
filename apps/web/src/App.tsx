@@ -2,6 +2,7 @@ import { useState } from "react";
 import { DashboardFazenda } from "./pages/DashboardFazenda";
 import { FichaAnimal } from "./pages/FichaAnimal";
 import { NovaAvaliacao } from "./pages/NovaAvaliacao";
+import { RankingLote } from "./pages/RankingLote";
 import { RevisaoKeypoints } from "./pages/RevisaoKeypoints";
 import { StatusOffline } from "./offline/StatusOffline";
 
@@ -10,6 +11,7 @@ type Tela =
   | "revisao-keypoints"
   | "ficha-animal"
   | { tipo: "nova-avaliacao"; animalId: string }
+  | { tipo: "ranking-lote"; loteId: string }
   | "dashboard";
 
 export function App() {
@@ -79,9 +81,13 @@ export function App() {
         <DashboardFazenda />
       ) : telaAtiva === "nova-avaliacao" ? (
         <NovaAvaliacao
-          animalIdInicial={typeof tela === "object" ? tela.animalId : undefined}
+          animalIdInicial={typeof tela === "object" && "animalId" in tela ? tela.animalId : undefined}
           onConcluido={() => setTela("ficha-animal")}
           onCancelar={() => setTela("ficha-animal")}
+        />
+      ) : telaAtiva === "ranking-lote" ? (
+        <RankingLote
+          loteId={typeof tela === "object" && "loteId" in tela ? tela.loteId : ""}
         />
       ) : (
         <RevisaoKeypoints />
