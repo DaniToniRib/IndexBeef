@@ -17,7 +17,7 @@ Objetivo: **foto ou vídeo entra, ficha do animal sai**, com fotos e vídeos de 
 - [x] Peso pela fórmula de referência
 - [x] Ficha do animal com imagem (quando MinIO ativo e captura disponível)
 - [x] Frontend PWA: câmera ao vivo com guia de silhueta (`CameraCaptura`), upload de vídeo e foto
-- [ ] Funciona **offline** (IndexedDB / Dexie — pasta `offline/` pendente)
+- [x] Funciona **offline** (IndexedDB / Dexie — `offline/db.ts`, `sync.ts`, `StatusOffline.tsx`)
 - [x] Importação CSV: animais (`POST /animais/importar-csv`) e pesagens (`POST /pesagens/importar-csv`)
 - [ ] Importação CSV: DEPs (requer tabela `dados_geneticos` — Fase 2)
 

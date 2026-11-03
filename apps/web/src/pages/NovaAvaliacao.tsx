@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
 import {
-  API_URL,
-  get,
-  post,
   uploadArquivo,
   type Animal,
-  type Avaliacao,
   type Fazenda,
   type FrameExtraidoResponse,
 } from "../api/client";
+import { cacheAnimal, cacheAnimais, cacheFazendas, postarComOutbox } from "../offline/sync";
 import { CameraCaptura } from "../camera/CameraCaptura";
 import { KeypointsCanvas } from "../components/KeypointsCanvas";
 import { pontosIniciaisPadrao } from "../keypoint-utils";
@@ -43,19 +40,20 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
 
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [enfileirado, setEnfileirado] = useState(false);
 
   useEffect(() => {
-    get<Fazenda[]>("/fazendas").then(setFazendas).catch(() => {});
+    cacheFazendas().then(setFazendas).catch(() => {});
   }, []);
 
   useEffect(() => {
     if (!fazendaId) return;
-    get<Animal[]>(`/animais?fazenda_id=${fazendaId}`).then(setAnimais).catch(() => {});
+    cacheAnimais(fazendaId).then(setAnimais).catch(() => {});
   }, [fazendaId]);
 
   useEffect(() => {
     if (!animalId) { setAnimal(null); return; }
-    get<Animal>(`/animais/${animalId}`).then(setAnimal).catch(() => {});
+    cacheAnimal(animalId).then((a) => setAnimal(a ?? null)).catch(() => {});
   }, [animalId]);
 
   function escolherImagemLocal(ev: React.ChangeEvent<HTMLInputElement>) {
@@ -121,9 +119,14 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
 
     setEnviando(true);
     setErro(null);
+    setEnfileirado(false);
     try {
-      await post<Avaliacao>("/avaliacoes", payload);
-      onConcluido(animalId);
+      const { enfileirado: eq } = await postarComOutbox("/avaliacoes", payload);
+      if (eq) {
+        setEnfileirado(true);
+      } else {
+        onConcluido(animalId);
+      }
     } catch (e) {
       setErro(String(e));
     } finally {
@@ -283,6 +286,12 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
       {erro && (
         <div style={{ marginTop: 12, padding: 10, background: "#fee2e2", color: "#991b1b", borderRadius: 6 }}>
           {erro}
+        </div>
+      )}
+
+      {enfileirado && (
+        <div style={{ marginTop: 12, padding: 10, background: "#dbeafe", color: "#1d4ed8", borderRadius: 6 }}>
+          Avaliação salva para sincronizar quando a conexão for restaurada.
         </div>
       )}
 

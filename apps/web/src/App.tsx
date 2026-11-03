@@ -3,6 +3,7 @@ import { DashboardFazenda } from "./pages/DashboardFazenda";
 import { FichaAnimal } from "./pages/FichaAnimal";
 import { NovaAvaliacao } from "./pages/NovaAvaliacao";
 import { RevisaoKeypoints } from "./pages/RevisaoKeypoints";
+import { StatusOffline } from "./offline/StatusOffline";
 
 type Tela =
   | "home"
@@ -18,6 +19,7 @@ export function App() {
 
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", color: "#111827" }}>
+      <StatusOffline />
       <header
         style={{
           display: "flex",
