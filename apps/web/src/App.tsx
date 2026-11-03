@@ -5,6 +5,8 @@ import { NovaAvaliacao } from "./pages/NovaAvaliacao";
 import { PainelRemoto } from "./pages/PainelRemoto";
 import { RankingLote } from "./pages/RankingLote";
 import { RevisaoKeypoints } from "./pages/RevisaoKeypoints";
+import { Cadastros } from "./pages/Cadastros";
+import { LancamentosAnimal } from "./pages/LancamentosAnimal";
 import { StatusOffline } from "./offline/StatusOffline";
 
 type Tela =
@@ -14,7 +16,9 @@ type Tela =
   | { tipo: "nova-avaliacao"; animalId: string }
   | { tipo: "ranking-lote"; loteId: string }
   | "dashboard"
-  | "painel-remoto";
+  | "painel-remoto"
+  | "cadastros"
+  | { tipo: "lancamentos-animal"; animalId: string; animalBrinco?: string };
 
 export function App() {
   const [tela, setTela] = useState<Tela>("home");
@@ -39,6 +43,7 @@ export function App() {
             [
               ["home", "Inicio"],
               ["ficha-animal", "Ficha do animal"],
+              ["cadastros", "Cadastros"],
               ["dashboard", "Dashboard"],
               ["painel-remoto", "Painel Remoto"],
               ["revisao-keypoints", "Revisao de keypoints"],
@@ -69,6 +74,9 @@ export function App() {
               <strong>Ficha do animal</strong> — timeline unificada, avaliações morfológicas e exportação PDF.
             </li>
             <li>
+              <strong>Cadastros</strong> — registrar fazendas, lotes e animais.
+            </li>
+            <li>
               <strong>Dashboard</strong> — totais, alertas de bateria, animais fora da cerca e mapa de geofences.
             </li>
             <li>
@@ -79,7 +87,12 @@ export function App() {
       ) : tela === "ficha-animal" ? (
         <FichaAnimal
           onNovaAvaliacao={(animalId) => setTela({ tipo: "nova-avaliacao", animalId })}
+          onLancamentos={(animalId, animalBrinco) =>
+            setTela({ tipo: "lancamentos-animal", animalId, animalBrinco })
+          }
         />
+      ) : tela === "cadastros" ? (
+        <Cadastros />
       ) : tela === "dashboard" ? (
         <DashboardFazenda />
       ) : telaAtiva === "nova-avaliacao" ? (
@@ -91,6 +104,14 @@ export function App() {
       ) : telaAtiva === "ranking-lote" ? (
         <RankingLote
           loteId={typeof tela === "object" && "loteId" in tela ? tela.loteId : ""}
+        />
+      ) : telaAtiva === "lancamentos-animal" ? (
+        <LancamentosAnimal
+          animalId={typeof tela === "object" && "animalId" in tela ? tela.animalId : ""}
+          animalBrinco={
+            typeof tela === "object" && "animalBrinco" in tela ? tela.animalBrinco : undefined
+          }
+          onVoltar={() => setTela("ficha-animal")}
         />
       ) : tela === "painel-remoto" ? (
         <PainelRemoto />

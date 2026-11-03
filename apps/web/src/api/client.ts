@@ -253,3 +253,24 @@ export interface Dashboard {
   animais_fora_cerca: DashboardAnimalFora[];
   geofences: DashboardGeofence[];
 }
+
+export interface Lote {
+  id: string;
+  fazenda_id: string;
+  nome: string;
+  categoria: "bezerro" | "garrote" | "novilha" | "matriz" | "touro";
+}
+
+export interface ProjecaoPonto {
+  idade_meses: number;
+  peso_kg: number;
+  peso_min_kg: number;
+  peso_max_kg: number;
+}
+
+export interface ProjecaoPeso {
+  peso_atual_kg: number | null;
+  idade_meses: number | null;
+  frame_score: number | null;
+  projecoes: ProjecaoPonto[];
+}

@@ -12,6 +12,7 @@ import {
   type EventoGeofence,
   type Fazenda,
   type PredicaoAvaliacao,
+  type ProjecaoPeso,
 } from "../api/client";
 import { AvaliacaoResultado } from "../components/AvaliacaoResultado";
 import { GraficoPeso } from "../components/GraficoPeso";
@@ -19,9 +20,10 @@ import { Timeline } from "../components/Timeline";
 
 interface Props {
   onNovaAvaliacao: (animalId: string) => void;
+  onLancamentos: (animalId: string, animalBrinco?: string) => void;
 }
 
-export function FichaAnimal({ onNovaAvaliacao }: Props) {
+export function FichaAnimal({ onNovaAvaliacao, onLancamentos }: Props) {
   const [fazendas, setFazendas] = useState<Fazenda[]>([]);
   const [fazendaId, setFazendaId] = useState<string>("");
   const [animais, setAnimais] = useState<Animal[]>([]);
@@ -33,6 +35,7 @@ export function FichaAnimal({ onNovaAvaliacao }: Props) {
   const [atendimentos, setAtendimentos] = useState<AtendimentoVeterinario[]>([]);
   const [eventos, setEventos] = useState<EventoGeofence[]>([]);
   const [avaliacoes, setAvaliacoes] = useState<AvaliacaoListItem[]>([]);
+  const [projecao, setProjecao] = useState<ProjecaoPeso | null>(null);
   const [avaliacaoDetalhe, setAvaliacaoDetalhe] = useState<Avaliacao | null>(null);
 
   const [erro, setErro] = useState<string | null>(null);
@@ -61,6 +64,7 @@ export function FichaAnimal({ onNovaAvaliacao }: Props) {
     }
     setCarregando(true);
     setErro(null);
+    setProjecao(null);
     Promise.all([
       get<Animal>(`/animais/${animalId}`),
       get<AnimalHistorico>(`/animais/${animalId}/historico`),
@@ -68,10 +72,12 @@ export function FichaAnimal({ onNovaAvaliacao }: Props) {
       get<AtendimentoVeterinario[]>(`/atendimentos-veterinarios?animal_id=${animalId}`),
       get<EventoGeofence[]>(`/animais/${animalId}/eventos-geofence`),
       get<AvaliacaoListItem[]>(`/animais/${animalId}/avaliacoes`),
+      get<ProjecaoPeso>(`/animais/${animalId}/projecao-peso`).catch(() => null),
     ])
-      .then(([a, h, ap, at, ev, avs]) => {
+      .then(([a, h, ap, at, ev, avs, proj]) => {
         setAnimal(a); setHistorico(h); setAplicacoes(ap);
         setAtendimentos(at); setEventos(ev); setAvaliacoes(avs);
+        setProjecao(proj);
       })
       .catch((e) => setErro(String(e)))
       .finally(() => setCarregando(false));
@@ -169,6 +175,13 @@ export function FichaAnimal({ onNovaAvaliacao }: Props) {
             >
               {baixandoPdf ? "Gerando PDF…" : "Exportar PDF"}
             </button>
+            <button
+              type="button"
+              onClick={() => onLancamentos(animalId, animal?.brinco ?? undefined)}
+              style={{ padding: "4px 14px", background: "#7c3aed", color: "white", border: "none", borderRadius: 6, cursor: "pointer", fontWeight: 600 }}
+            >
+              Lançamentos
+            </button>
           </>
         )}
       </div>
@@ -203,7 +216,11 @@ export function FichaAnimal({ onNovaAvaliacao }: Props) {
           </section>
 
           <h3 style={{ margin: "24px 0 8px" }}>Evolucao de peso</h3>
-          <GraficoPeso pesagens={historico.pesagens} />
+          <GraficoPeso
+            pesagens={historico.pesagens}
+            projecao={projecao?.projecoes}
+            nascimento={animal?.nascimento ?? undefined}
+          />
 
           {/* Avaliações morfológicas */}
           <h3 style={{ margin: "24px 0 8px" }}>Avaliações morfológicas</h3>
