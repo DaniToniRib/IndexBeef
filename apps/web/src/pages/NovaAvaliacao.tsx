@@ -1,11 +1,23 @@
 import { useEffect, useState } from "react";
-import { API_URL, get, post, type Animal, type Avaliacao, type Fazenda } from "../api/client";
+import {
+  API_URL,
+  get,
+  post,
+  uploadArquivo,
+  type Animal,
+  type Avaliacao,
+  type Fazenda,
+  type FrameExtraidoResponse,
+} from "../api/client";
+import { CameraCaptura } from "../camera/CameraCaptura";
 import { KeypointsCanvas } from "../components/KeypointsCanvas";
 import { pontosIniciaisPadrao } from "../keypoint-utils";
 import type { Keypoint } from "../types";
 
 const LARGURA = 1280;
 const ALTURA = 720;
+
+type FonteImagem = "camera" | "video" | "imagem";
 
 interface Props {
   animalIdInicial?: string;
@@ -26,6 +38,9 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
   const [larguraGarupa, setLarguraGarupa] = useState("");
   const [idadeMesesOverride, setIdadeMesesOverride] = useState("");
 
+  const [fonteImagem, setFonteImagem] = useState<FonteImagem>("imagem");
+  const [carregandoVideo, setCarregandoVideo] = useState(false);
+
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -43,11 +58,30 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
     get<Animal>(`/animais/${animalId}`).then(setAnimal).catch(() => {});
   }, [animalId]);
 
-  function escolherArquivo(ev: React.ChangeEvent<HTMLInputElement>) {
+  function escolherImagemLocal(ev: React.ChangeEvent<HTMLInputElement>) {
     const file = ev.target.files?.[0];
     if (!file) return;
     if (frameUrl) URL.revokeObjectURL(frameUrl);
     setFrameUrl(URL.createObjectURL(file));
+  }
+
+  async function processarVideo(ev: React.ChangeEvent<HTMLInputElement>) {
+    const file = ev.target.files?.[0];
+    if (!file) return;
+    setCarregandoVideo(true);
+    setErro(null);
+    setFrameUrl(undefined);
+    try {
+      const resp = await uploadArquivo<FrameExtraidoResponse>(
+        "/capturas/extrair-frame",
+        file,
+      );
+      setFrameUrl(resp.frame_url);
+    } catch (e) {
+      setErro(`Falha ao processar vídeo: ${String(e)}`);
+    } finally {
+      setCarregandoVideo(false);
+    }
   }
 
   function calcularIdadeMeses(): number | null {
@@ -97,6 +131,17 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
     }
   }
 
+  const tabStyle = (aba: FonteImagem): React.CSSProperties => ({
+    padding: "6px 16px",
+    fontSize: 13,
+    border: "none",
+    borderBottom: fonteImagem === aba ? "2px solid #059669" : "2px solid transparent",
+    background: "none",
+    color: fonteImagem === aba ? "#059669" : "#6b7280",
+    fontWeight: fonteImagem === aba ? 600 : 400,
+    cursor: "pointer",
+  });
+
   return (
     <section style={{ maxWidth: 1024, margin: "0 auto", padding: 24 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
@@ -106,7 +151,7 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
         </button>
       </div>
 
-      {/* Seleção do animal (se não foi pré-preenchido) */}
+      {/* Seleção do animal */}
       {!animalIdInicial && (
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16, padding: 12, background: "#f9fafb", borderRadius: 8 }}>
           <label>
@@ -142,48 +187,83 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
         <label style={{ fontSize: 13 }}>
           Escala px/cm:{" "}
           <input
-            type="number"
-            min="0.1"
-            step="0.1"
-            value={pxPorCm}
-            onChange={(e) => setPxPorCm(e.target.value)}
-            style={{ width: 70 }}
+            type="number" min="0.1" step="0.1" value={pxPorCm}
+            onChange={(e) => setPxPorCm(e.target.value)} style={{ width: 70 }}
           />
-          <span style={{ marginLeft: 6, color: "#6b7280" }}>
-            (placa 40 cm = ??? px → scale = px÷40)
-          </span>
+          <span style={{ marginLeft: 6, color: "#6b7280" }}>(placa 40 cm → px÷40)</span>
         </label>
         <label style={{ fontSize: 13 }}>
           Largura garupa (cm):{" "}
           <input
-            type="number"
-            min="0"
-            step="0.5"
-            value={larguraGarupa}
+            type="number" min="0" step="0.5" value={larguraGarupa}
             onChange={(e) => setLarguraGarupa(e.target.value)}
-            placeholder="opcional"
-            style={{ width: 70 }}
+            placeholder="opcional" style={{ width: 70 }}
           />
         </label>
         {!animal?.nascimento && (
           <label style={{ fontSize: 13 }}>
             Idade (meses):{" "}
             <input
-              type="number"
-              min="1"
-              step="1"
-              value={idadeMesesOverride}
+              type="number" min="1" step="1" value={idadeMesesOverride}
               onChange={(e) => setIdadeMesesOverride(e.target.value)}
-              placeholder="obrigatório"
-              style={{ width: 80 }}
+              placeholder="obrigatório" style={{ width: 80 }}
             />
           </label>
         )}
       </div>
 
-      {/* Imagem + keypoints */}
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
-        <input type="file" accept="image/*" onChange={escolherArquivo} aria-label="Carregar frame" />
+      {/* Abas de fonte de imagem */}
+      <div style={{ borderBottom: "1px solid #e5e7eb", marginBottom: 12 }}>
+        <button type="button" style={tabStyle("camera")} onClick={() => setFonteImagem("camera")}>
+          Câmera
+        </button>
+        <button type="button" style={tabStyle("video")} onClick={() => setFonteImagem("video")}>
+          Vídeo
+        </button>
+        <button type="button" style={tabStyle("imagem")} onClick={() => setFonteImagem("imagem")}>
+          Imagem
+        </button>
+      </div>
+
+      {/* Conteúdo da aba */}
+      <div style={{ marginBottom: 12 }}>
+        {fonteImagem === "camera" && (
+          <CameraCaptura onCaptura={(url) => setFrameUrl(url)} />
+        )}
+
+        {fonteImagem === "video" && (
+          <div>
+            <label style={{ fontSize: 13, color: "#374151" }}>
+              Selecione um vídeo (mp4, mov, avi):{" "}
+              <input
+                type="file"
+                accept="video/*"
+                onChange={processarVideo}
+                aria-label="Carregar vídeo"
+              />
+            </label>
+            {carregandoVideo && (
+              <div style={{ marginTop: 8, fontSize: 13, color: "#6b7280" }}>
+                Extraindo melhor frame… (pode levar alguns segundos)
+              </div>
+            )}
+            {frameUrl && fonteImagem === "video" && (
+              <div style={{ marginTop: 8, fontSize: 13, color: "#059669" }}>
+                Frame extraído com sucesso.
+              </div>
+            )}
+          </div>
+        )}
+
+        {fonteImagem === "imagem" && (
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <input type="file" accept="image/*" onChange={escolherImagemLocal} aria-label="Carregar frame" />
+          </div>
+        )}
+      </div>
+
+      {/* Canvas de keypoints */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
         <button type="button" onClick={() => setPontos(pontosIniciaisPadrao(LARGURA, ALTURA))}>
           Reiniciar pontos
         </button>

@@ -6,6 +6,7 @@ from app.routers import (
     atendimentos_veterinarios,
     avaliacoes,
     campanhas,
+    capturas,
     dashboard,
     dispositivos,
     fazendas,
@@ -35,6 +36,7 @@ app.include_router(aplicacoes_sanitarias.router)
 app.include_router(atendimentos_veterinarios.router)
 app.include_router(gps.router)
 app.include_router(avaliacoes.router)
+app.include_router(capturas.router)
 app.include_router(dashboard.router)
 app.include_router(relatorios.router)
 

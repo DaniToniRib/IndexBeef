@@ -9,16 +9,19 @@
 ## Fase 1: Protótipo em casa (semanas 3–6)
 Objetivo: **foto ou vídeo entra, ficha do animal sai**, com fotos e vídeos de Nelore de teste.
 
-- [ ] Backend: CRUD de fazenda, lote e animal + upload de captura
-- [ ] Worker: extração de frames, segmentação (YOLO-seg), filtro de qualidade
-- [ ] Calibração ArUco
-- [ ] **Tela de keypoints manual/semiautomática**
-- [ ] Cálculo de medidas + caixa virtual + IPL
-- [ ] Peso pela fórmula de referência
-- [ ] Ficha do animal com a imagem anotada e a caixa desenhada
-- [ ] Frontend PWA: câmera ao vivo com guia de silhueta, upload de vídeo e foto
-- [ ] Funciona **offline** (notebook sem internet + celular no Wi-Fi local)
-- [ ] Importação CSV: animais, DEPs e pesagens
+- [x] Backend: CRUD de fazenda, lote e animal + upload de captura (`POST /capturas/extrair-frame`)
+- [ ] Worker: extração de frames, ~~segmentação (YOLO-seg)~~ (bloqueado — Fase 2), filtro de qualidade (Laplaciano) ✓
+- [x] Calibração ArUco
+- [x] **Tela de keypoints manual/semiautomática** (`NovaAvaliacao` com canvas)
+- [x] Cálculo de medidas + caixa virtual + IPL (quando `area_tronco_cm2` disponível)
+- [x] Peso pela fórmula de referência
+- [x] Ficha do animal com imagem (quando MinIO ativo e captura disponível)
+- [x] Frontend PWA: câmera ao vivo com guia de silhueta (`CameraCaptura`), upload de vídeo e foto
+- [ ] Funciona **offline** (IndexedDB / Dexie — pasta `offline/` pendente)
+- [x] Importação CSV: animais (`POST /animais/importar-csv`) e pesagens (`POST /pesagens/importar-csv`)
+- [ ] Importação CSV: DEPs (requer tabela `dados_geneticos` — Fase 2)
+
+**Critério de saída**: medir uma caixa de papelão ou um objeto de tamanho conhecido com erro < 3%, e processar 10 vídeos de Nelore de ponta a ponta.
 
 **Critério de saída**: medir uma caixa de papelão ou um objeto de tamanho conhecido com erro < 3%, e processar 10 vídeos de Nelore de ponta a ponta.
 

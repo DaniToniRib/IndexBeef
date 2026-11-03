@@ -3,18 +3,27 @@
 processar_avaliacao: le parametros_entrada da avaliacao, executa o pipeline
 de visao e salva resultado + tabelas estruturadas via SQL direto (o worker
 nao importa do pacote app/ da API — usa SQLAlchemy Core puro).
+
+preparar_frames_avaliacao: baixa video do MinIO, extrai frames, seleciona o
+melhor por nitidez, re-envia ao MinIO e cria registro captura no banco.
 """
 
 from __future__ import annotations
 
 import json
 import os
+import tempfile
 import uuid
+from pathlib import Path
 from typing import Any
 
 from sqlalchemy import create_engine, text
 
+from indexbeef_vision.frames import extrair_frames
 from indexbeef_vision.pipeline import VERSAO_PIPELINE, montar_payload
+from indexbeef_worker.frame_selector import selecionar_melhor_frame
+from indexbeef_worker.minio_worker import download_bytes as minio_download
+from indexbeef_worker.minio_worker import upload_bytes as minio_upload
 
 
 def _db_engine():
@@ -137,6 +146,47 @@ def _salvar_estruturado(conn, avaliacao_id: str, resultado: dict[str, Any]) -> N
             "id": _novo_id(), "aid": avaliacao_id,
             "tipo": f"peso_{int(pt['idade_meses'])}m",
             "val": pt["peso_kg"], "fmin": pt["peso_min_kg"], "fmax": pt["peso_max_kg"],
+        })
+
+
+def preparar_frames_avaliacao(captura_id: str) -> None:
+    """Task RQ: extrai frames do video, seleciona o melhor e salva como captura foto."""
+    engine = _db_engine()
+    with engine.connect() as conn:
+        row = conn.execute(
+            text("SELECT arquivo_url, avaliacao_id, vista FROM captura WHERE id = :id"),
+            {"id": captura_id},
+        ).fetchone()
+        if row is None:
+            raise ValueError(f"captura {captura_id} nao encontrada")
+        arquivo_url, avaliacao_id, vista = row
+
+    dados = minio_download(arquivo_url)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        ext = arquivo_url.rsplit(".", 1)[-1] if "." in arquivo_url else "mp4"
+        video_path = Path(tmpdir) / f"video.{ext}"
+        video_path.write_bytes(dados)
+        frames_dir = Path(tmpdir) / "frames"
+
+        frames = extrair_frames(video_path, frames_dir, fps_alvo=5.0)
+        melhor = selecionar_melhor_frame(frames)
+        if melhor is None:
+            return
+
+        frame_bytes = melhor.arquivo.read_bytes()
+        frame_url = minio_upload(frame_bytes, "image/jpeg", "jpg")
+
+    with engine.begin() as conn:
+        conn.execute(text("""
+            INSERT INTO captura (
+                id, criado_em, atualizado_em, avaliacao_id, tipo, vista, arquivo_url
+            ) VALUES (:id, now(), now(), :avaliacao_id, 'foto', :vista, :url)
+        """), {
+            "id": _novo_id(),
+            "avaliacao_id": str(avaliacao_id),
+            "vista": vista or "lateral",
+            "url": frame_url,
         })
 
 

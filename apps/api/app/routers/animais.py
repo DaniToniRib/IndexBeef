@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -16,6 +16,8 @@ from app.schemas.animal import (
     AnimalUpdate,
 )
 from app.schemas.avaliacao import AvaliacaoListItem
+from app.schemas.leitura_rfid import ImportacaoResultado
+from app.services.csv_animais import parse_csv_animais
 from app.services.historico import consolidar_historico
 
 router = APIRouter(prefix="/animais", tags=["animais"])
@@ -101,3 +103,31 @@ def listar_avaliacoes_do_animal(
         .order_by(Avaliacao.data_hora.desc())
     )
     return list(db.scalars(stmt).all())
+
+
+@router.post("/importar-csv", response_model=ImportacaoResultado)
+def importar_csv_animais(
+    fazenda_id: uuid.UUID = Query(...),
+    arquivo: UploadFile = File(...),
+    db: Session = Depends(get_db),
+) -> ImportacaoResultado:
+    """Importa animais em massa a partir de CSV.
+
+    Colunas minimas: brinco (ou rgn), sexo
+    Opcionais: rgn, rgd, nascimento, raca, ceip, variedade, observacoes
+    """
+    try:
+        conteudo = arquivo.file.read().decode("utf-8-sig")
+    except UnicodeDecodeError as e:
+        raise HTTPException(status_code=400, detail=f"arquivo nao e UTF-8: {e}") from e
+
+    linhas, erros = parse_csv_animais(conteudo, fazenda_id)
+    if not linhas and erros:
+        return ImportacaoResultado(importadas=0, pareadas=0, erros=erros)
+
+    importadas = 0
+    for lin in linhas:
+        db.add(Animal(**lin))
+        importadas += 1
+    db.commit()
+    return ImportacaoResultado(importadas=importadas, pareadas=importadas, erros=erros)

@@ -99,6 +99,28 @@ export function AvaliacaoResultado({ avaliacao }: Props) {
         </div>
       )}
 
+      {/* Frame de referência (foto lateral, se disponível) */}
+      {avaliacao.capturas && avaliacao.capturas.length > 0 && (() => {
+        const foto = avaliacao.capturas!.find(
+          (c) => c.tipo === "foto" && c.vista === "lateral",
+        ) ?? avaliacao.capturas![0];
+        return (
+          <div style={{ padding: "10px 14px 0" }}>
+            <img
+              src={foto.arquivo_url}
+              alt="Frame da avaliação"
+              style={{
+                maxWidth: "100%",
+                maxHeight: 280,
+                borderRadius: 6,
+                objectFit: "contain",
+                background: "#000",
+              }}
+            />
+          </div>
+        );
+      })()}
+
       {avaliacao.status === "concluida" && avaliacao.medida && (
         <div style={{ padding: 14, display: "flex", flexWrap: "wrap", gap: 20 }}>
           {/* Medidas */}

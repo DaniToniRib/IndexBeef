@@ -30,6 +30,17 @@ export async function getBlob(path: string): Promise<Blob> {
   return r.blob();
 }
 
+export async function uploadArquivo<T>(path: string, arquivo: File): Promise<T> {
+  const form = new FormData();
+  form.append("arquivo", arquivo);
+  const r = await fetch(`${API_URL}${path}`, { method: "POST", body: form });
+  if (!r.ok) {
+    const texto = await r.text();
+    throw new Error(`${r.status} ${r.statusText}: ${texto}`);
+  }
+  return (await r.json()) as T;
+}
+
 // --- Tipos de domínio ---
 
 export interface Fazenda {
@@ -146,6 +157,23 @@ export interface Avaliacao {
   medida?: MedidasAvaliacao | null;
   caixa_virtual?: CaixaVirtualAvaliacao | null;
   predicoes?: PredicaoAvaliacao[];
+  capturas?: CapturaItem[];
+}
+
+export interface FrameExtraidoResponse {
+  frame_url: string;
+  tipo_mime: string;
+}
+
+export interface CapturaItem {
+  id: string;
+  avaliacao_id: string;
+  tipo: "ao_vivo" | "video" | "foto";
+  vista: "lateral" | "traseira" | "dorsal" | "frontal";
+  arquivo_url: string;
+  dispositivo?: string | null;
+  px_por_cm?: string | null;
+  criado_em: string;
 }
 
 export interface AvaliacaoListItem {

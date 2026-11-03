@@ -9,6 +9,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.captura import CapturaRead
+
 
 class KeypointCm(BaseModel):
     id: int = Field(ge=0, le=17)
@@ -94,6 +96,7 @@ class AvaliacaoRead(BaseModel):
     medida: MedidasRead | None = None
     caixa_virtual: CaixaVirtualRead | None = None
     predicoes: list[PredicaoRead] = []
+    capturas: list[CapturaRead] = []
 
 
 class AvaliacaoListItem(BaseModel):
