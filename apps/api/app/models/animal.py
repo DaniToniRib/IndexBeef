@@ -4,7 +4,7 @@ import uuid
 from datetime import date
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Date, ForeignKey, String, Uuid
+from sqlalchemy import Boolean, Date, ForeignKey, String, Text, Uuid
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -13,6 +13,7 @@ from app.models.enums import Sexo, SituacaoAnimal, Variedade
 
 if TYPE_CHECKING:
     from app.models.avaliacao import Avaliacao
+    from app.models.identificacao_eletronica import IdentificacaoEletronica
     from app.models.lote import Lote
     from app.models.pesagem import Pesagem
 
@@ -52,11 +53,17 @@ class Animal(SyncMixin, Base):
         default=SituacaoAnimal.ativo,
     )
 
+    data_entrada: Mapped[date | None] = mapped_column(Date, nullable=True)
+    observacoes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     lote: Mapped[Lote | None] = relationship(back_populates="animais")
     pesagens: Mapped[list[Pesagem]] = relationship(
         back_populates="animal", cascade="all, delete-orphan",
     )
     avaliacoes: Mapped[list[Avaliacao]] = relationship(
+        back_populates="animal", cascade="all, delete-orphan",
+    )
+    identificacoes_eletronicas: Mapped[list[IdentificacaoEletronica]] = relationship(
         back_populates="animal", cascade="all, delete-orphan",
     )
 

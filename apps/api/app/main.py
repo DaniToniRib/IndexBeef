@@ -1,6 +1,14 @@
 from fastapi import FastAPI
 
-from app.routers import avaliacoes
+from app.routers import (
+    animais,
+    avaliacoes,
+    dispositivos,
+    fazendas,
+    identificacoes,
+    lotes,
+    pesagens,
+)
 
 app = FastAPI(
     title="IndexBeef API",
@@ -8,6 +16,12 @@ app = FastAPI(
     description="Avaliação morfológica de bovinos Nelore por visão computacional.",
 )
 
+app.include_router(fazendas.router)
+app.include_router(lotes.router)
+app.include_router(animais.router)
+app.include_router(pesagens.router)
+app.include_router(identificacoes.router)
+app.include_router(dispositivos.router)
 app.include_router(avaliacoes.router)
 
 

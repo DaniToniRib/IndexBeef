@@ -8,7 +8,9 @@ from app.models.animal import Animal
 from app.models.avaliacao import Avaliacao
 from app.models.base import Base, SyncMixin
 from app.models.captura import Captura
+from app.models.dispositivo import Dispositivo
 from app.models.fazenda import Fazenda
+from app.models.identificacao_eletronica import IdentificacaoEletronica
 from app.models.lote import Lote
 from app.models.pesagem import Pesagem
 
@@ -17,7 +19,9 @@ __all__ = [
     "Avaliacao",
     "Base",
     "Captura",
+    "Dispositivo",
     "Fazenda",
+    "IdentificacaoEletronica",
     "Lote",
     "Pesagem",
     "SyncMixin",

@@ -15,6 +15,7 @@ from app.models.enums import OrigemPesagem
 if TYPE_CHECKING:
     from app.models.animal import Animal
     from app.models.avaliacao import Avaliacao
+    from app.models.dispositivo import Dispositivo
 
 
 class Pesagem(SyncMixin, Base):
@@ -31,6 +32,10 @@ class Pesagem(SyncMixin, Base):
     avaliacao_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("avaliacao.id", ondelete="SET NULL"), nullable=True,
     )
+    dispositivo_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("dispositivo.id", ondelete="SET NULL"), nullable=True,
+    )
 
     animal: Mapped[Animal] = relationship(back_populates="pesagens")
     avaliacao: Mapped[Avaliacao | None] = relationship(back_populates="pesagens")
+    dispositivo: Mapped[Dispositivo | None] = relationship(back_populates="pesagens")
