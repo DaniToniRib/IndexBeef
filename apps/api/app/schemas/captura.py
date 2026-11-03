@@ -3,8 +3,16 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
+
+
+class CapturaCreate(BaseModel):
+    avaliacao_id: uuid.UUID
+    arquivo_url: str
+    tipo: Literal["foto", "ao_vivo", "video"] = "foto"
+    vista: Literal["lateral", "traseira", "dorsal", "frontal"] = "lateral"
 
 
 class CapturaRead(BaseModel):

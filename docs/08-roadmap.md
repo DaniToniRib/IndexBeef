@@ -10,7 +10,7 @@
 Objetivo: **foto ou vídeo entra, ficha do animal sai**, com fotos e vídeos de Nelore de teste.
 
 - [x] Backend: CRUD de fazenda, lote e animal + upload de captura (`POST /capturas/extrair-frame`)
-- [ ] Worker: extração de frames, ~~segmentação (YOLO-seg)~~ (bloqueado — Fase 2), filtro de qualidade (Laplaciano) ✓
+- [x] Worker: extração de frames + filtro Laplaciano; task `preparar_frames_avaliacao` integrada via `POST /capturas` (tipo='video' enfileira RQ; ~~YOLO-seg~~ bloqueado — Fase 2)
 - [x] Calibração ArUco
 - [x] **Tela de keypoints manual/semiautomática** (`NovaAvaliacao` com canvas)
 - [x] Cálculo de medidas + caixa virtual + IPL (quando `area_tronco_cm2` disponível)

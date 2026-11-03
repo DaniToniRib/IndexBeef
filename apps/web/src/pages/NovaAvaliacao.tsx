@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  post,
   uploadArquivo,
   type Animal,
   type Fazenda,
@@ -121,10 +122,20 @@ export function NovaAvaliacao({ animalIdInicial, onConcluido, onCancelar }: Prop
     setErro(null);
     setEnfileirado(false);
     try {
-      const { enfileirado: eq } = await postarComOutbox("/avaliacoes", payload);
+      const { resultado, enfileirado: eq } = await postarComOutbox("/avaliacoes", payload);
       if (eq) {
         setEnfileirado(true);
       } else {
+        // salva frame como captura permanente (silencioso — não bloqueia o fluxo)
+        if (frameUrl?.startsWith("http") && resultado) {
+          const av = resultado as { id: string };
+          post<unknown>("/capturas", {
+            avaliacao_id: av.id,
+            arquivo_url: frameUrl,
+            tipo: "foto",
+            vista: "lateral",
+          }).catch(() => {});
+        }
         onConcluido(animalId);
       }
     } catch (e) {

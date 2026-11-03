@@ -11,12 +11,19 @@ POST /capturas/extrair-frame: recebe foto ou video, armazena no MinIO e,
 from __future__ import annotations
 
 import tempfile
+import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from sqlalchemy.orm import Session
 
+from app.core.db import get_db
 from app.core.minio_client import minio_disponivel, upload_bytes
-from app.schemas.captura import FrameExtraidoResponse
+from app.core.redis_queue import get_queue
+from app.models.avaliacao import Avaliacao
+from app.models.captura import Captura
+from app.models.enums import TipoCaptura, VistaCaptura
+from app.schemas.captura import CapturaCreate, CapturaRead, FrameExtraidoResponse
 
 router = APIRouter(prefix="/capturas", tags=["capturas"])
 
@@ -94,3 +101,40 @@ def extrair_frame(arquivo: UploadFile = File(...)) -> FrameExtraidoResponse:
 
     frame_url = upload_bytes(frame_bytes, frame_mime, frame_ext)
     return FrameExtraidoResponse(frame_url=frame_url, tipo_mime=frame_mime)
+
+
+@router.post("", response_model=CapturaRead, status_code=status.HTTP_201_CREATED)
+def criar_captura(
+    payload: CapturaCreate,
+    db: Session = Depends(get_db),
+) -> Captura:
+    """Associa um arquivo (já no MinIO) a uma avaliação existente.
+
+    Para tipo='video' com Redis disponível, enfileira preparar_frames_avaliacao
+    para extração assíncrona do melhor frame.
+    """
+    avaliacao = db.get(Avaliacao, payload.avaliacao_id)
+    if avaliacao is None:
+        raise HTTPException(status_code=404, detail="avaliacao nao encontrada")
+
+    captura = Captura(
+        avaliacao_id=payload.avaliacao_id,
+        tipo=TipoCaptura(payload.tipo),
+        vista=VistaCaptura(payload.vista),
+        arquivo_url=payload.arquivo_url,
+    )
+    db.add(captura)
+    db.flush()
+
+    if payload.tipo == "video":
+        fila = get_queue()
+        if fila is not None:
+            fila.enqueue(
+                "indexbeef_worker.tasks.preparar_frames_avaliacao",
+                str(captura.id),
+                job_timeout=180,
+            )
+
+    db.commit()
+    db.refresh(captura)
+    return captura
