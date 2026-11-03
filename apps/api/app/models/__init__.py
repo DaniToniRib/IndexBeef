@@ -19,6 +19,7 @@ from app.models.evento_geofence import EventoGeofence
 from app.models.evento_reprodutivo import EventoReprodutivo
 from app.models.exame_andrologico import ExameAndrologico
 from app.models.fazenda import Fazenda
+from app.models.fazenda_usuario import FazendaUsuario
 from app.models.geofence import Geofence
 from app.models.identificacao_eletronica import IdentificacaoEletronica
 from app.models.leitura_rfid import LeituraRfid
@@ -28,6 +29,7 @@ from app.models.modelo_versao import ModeloVersao
 from app.models.pesagem import Pesagem
 from app.models.predicao_avaliacao import PredicaoAvaliacao
 from app.models.telemetria_gps import TelemetriaGps
+from app.models.usuario import Usuario
 
 __all__ = [
     "Animal",
@@ -45,6 +47,7 @@ __all__ = [
     "EventoReprodutivo",
     "ExameAndrologico",
     "Fazenda",
+    "FazendaUsuario",
     "Geofence",
     "IdentificacaoEletronica",
     "LeituraRfid",
@@ -55,4 +58,5 @@ __all__ = [
     "PredicaoAvaliacao",
     "SyncMixin",
     "TelemetriaGps",
+    "Usuario",
 ]

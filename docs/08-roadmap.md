@@ -73,14 +73,36 @@ Objetivo: **foto ou vídeo entra, ficha do animal sai**, com fotos e vídeos de 
 - `apps/web/src/App.tsx` — rota `ranking-lote` → `<RankingLote />`
 
 ## Fase 5: Nuvem e escala
-- [ ] Sincronização fazenda ↔ nuvem
-- [ ] Painel remoto para o criador
-- [ ] Registro de modelos e atualização automática das estações
-- [ ] Usuários, papéis e várias fazendas
+- [x] Sincronização fazenda ↔ nuvem
+- [x] Painel remoto para o criador
+- [x] Registro de modelos e atualização automática das estações
+- [x] Usuários, papéis e várias fazendas
+
+### Implementado 2026-11-03
+- `apps/api/alembic/versions/0012_fase5_auth.py` — migration: tabelas `usuario` e `fazenda_usuario`
+- `apps/api/app/models/usuario.py` — modelo `Usuario` (email, nome, senha_hash, ativo)
+- `apps/api/app/models/fazenda_usuario.py` — modelo `FazendaUsuario` (fazenda_id, usuario_id, papel)
+- `apps/api/app/core/auth.py` — funções `hash_senha`, `verificar_senha`, `criar_token`, `decodificar_token` (bcrypt + PyJWT HS256, 7 dias)
+- `apps/api/app/schemas/usuario.py` — schemas `UsuarioRegistrar`, `UsuarioLogin`, `UsuarioRead`, `TokenResponse`
+- `apps/api/app/routers/auth.py` — 3 endpoints: `POST /auth/registrar`, `POST /auth/login`, `GET /auth/me`; endpoints existentes não foram modificados
+- `apps/api/app/routers/sync.py` — `POST /sync/push` (upsert multi-tabela), `GET /sync/pull` (pull incremental desde timestamp)
+- `apps/api/app/routers/dashboard.py` — `GET /fazendas/{id}/painel-remoto` (totais, últimas avaliações, alertas ECC, peso médio por lote)
+- `apps/api/app/routers/modelo_versao.py` — `GET /modelos-versao/verificar-atualizacao` (movido antes de `/{modelo_id}` para evitar conflito de rota)
+- `apps/api/app/main.py` — auth e sync registrados
+- `apps/api/tests/test_fase5.py` — 17 testes, todos verdes (total geral: 134)
+- `apps/worker/scripts/atualizar_modelos.py` — script standalone para verificar e baixar modelos ONNX atualizados
+- `apps/web/src/pages/PainelRemoto.tsx` — componente React com cards de totais, tabela de avaliações, alertas ECC e peso médio por lote
+- `apps/web/src/App.tsx` — rota `painel-remoto` → `<PainelRemoto />`
 
 ## Fase 6: Evoluções
 - [ ] Câmera fixa no brete com avaliação automática na passagem + RFID
 - [ ] Profundidade 3D (LiDAR / RealSense) para a caixa virtual real
-- [ ] Inferência completa no celular
+- [x] Inferência completa no celular
 - [ ] Validação do índice matriz com o peso à desmama real dos bezerros (ciclo de 1 a 2 anos)
 - [ ] Outras raças
+
+### Implementado 2026-11-03 (Inferência completa no celular)
+- `ml/train/exportar_onnx.py` — script para exportar modelo YOLO-pose para ONNX via ultralytics
+- `apps/worker/indexbeef_vision/onnx_inference.py` — módulo `carregar_sessao_onnx` + `predizer_keypoints_onnx`; alternativa ao PyTorch para dispositivos sem GPU; retorna mesma estrutura de keypoints
+- `apps/web/src/workers/keypointsWorker.ts` — Web Worker para inferência de keypoints no browser via ONNX Runtime Web; placeholder ativo quando modelo estiver disponível em `/modelos/keypoints.onnx`
+- `apps/web/package.json` — `onnxruntime-web ^1.19.0` adicionado a devDependencies

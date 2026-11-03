@@ -2,6 +2,7 @@ import { useState } from "react";
 import { DashboardFazenda } from "./pages/DashboardFazenda";
 import { FichaAnimal } from "./pages/FichaAnimal";
 import { NovaAvaliacao } from "./pages/NovaAvaliacao";
+import { PainelRemoto } from "./pages/PainelRemoto";
 import { RankingLote } from "./pages/RankingLote";
 import { RevisaoKeypoints } from "./pages/RevisaoKeypoints";
 import { StatusOffline } from "./offline/StatusOffline";
@@ -12,7 +13,8 @@ type Tela =
   | "ficha-animal"
   | { tipo: "nova-avaliacao"; animalId: string }
   | { tipo: "ranking-lote"; loteId: string }
-  | "dashboard";
+  | "dashboard"
+  | "painel-remoto";
 
 export function App() {
   const [tela, setTela] = useState<Tela>("home");
@@ -38,6 +40,7 @@ export function App() {
               ["home", "Inicio"],
               ["ficha-animal", "Ficha do animal"],
               ["dashboard", "Dashboard"],
+              ["painel-remoto", "Painel Remoto"],
               ["revisao-keypoints", "Revisao de keypoints"],
             ] as const
           ).map(([chave, rotulo]) => (
@@ -89,6 +92,8 @@ export function App() {
         <RankingLote
           loteId={typeof tela === "object" && "loteId" in tela ? tela.loteId : ""}
         />
+      ) : tela === "painel-remoto" ? (
+        <PainelRemoto />
       ) : (
         <RevisaoKeypoints />
       )}

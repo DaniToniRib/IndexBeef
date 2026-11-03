@@ -45,6 +45,33 @@ def listar_modelos_versao(
     return list(db.scalars(stmt).all())
 
 
+@router.get("/verificar-atualizacao")
+def verificar_atualizacao(
+    nome: str = Query(...),
+    versao_atual: str = Query(...),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Verifica se existe uma versao ativa diferente da versao_atual.
+
+    Retorna {"atualizar": true, "versao": str, "artefato_url": str, "metricas": dict}
+    ou {"atualizar": false}.
+    """
+    modelo = db.scalar(
+        select(ModeloVersao)
+        .where(ModeloVersao.nome == nome)
+        .where(ModeloVersao.ativo.is_(True))
+        .where(ModeloVersao.versao != versao_atual),
+    )
+    if modelo is None:
+        return {"atualizar": False}
+    return {
+        "atualizar": True,
+        "versao": modelo.versao,
+        "artefato_url": modelo.artefato_url,
+        "metricas": modelo.metricas or {},
+    }
+
+
 @router.get("/{modelo_id}", response_model=ModeloVersaoRead)
 def ler_modelo_versao(
     modelo_id: uuid.UUID,
