@@ -44,7 +44,8 @@ services:
 
   api:
     build:
-      context: ./apps/api
+      context: .
+      dockerfile: apps/api/Dockerfile
     environment:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
@@ -53,9 +54,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-indexbeef}
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      MINIO_ENDPOINT: minio:9000
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-indexbeef}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-indexbeef-dev}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-indexbeef}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-indexbeef-dev}
       MINIO_BUCKET: ${MINIO_BUCKET:-indexbeef}
     ports:
       - "${API_PORT:-8000}:8000"
@@ -68,7 +69,13 @@ services:
         condition: service_healthy
     volumes:
       - ./apps/api:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      - ./apps/worker:/worker
+    # Migrations aplicadas automaticamente pelo CMD do Dockerfile.
+    # --reload ativo para desenvolvimento (código montado via volume).
+    command: >
+      bash -c "pip install --quiet --no-deps /worker &&
+               alembic upgrade head &&
+               uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
   worker:
     build:
@@ -81,9 +88,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-indexbeef}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-indexbeef}
       POSTGRES_DB: ${POSTGRES_DB:-indexbeef}
-      MINIO_ENDPOINT: minio:9000
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-indexbeef}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-indexbeef-dev}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-indexbeef}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-indexbeef-dev}
       MINIO_BUCKET: ${MINIO_BUCKET:-indexbeef}
     depends_on:
       redis:

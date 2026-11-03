@@ -2,9 +2,9 @@
 
 ## Fase 0: Fundação (semanas 1–2)
 - [x] Documentação e arquitetura
-- [ ] Estrutura do repositório (monorepo) + `docker compose` funcionando
-- [ ] CI básico (lint + testes)
-- [ ] Gerar o PDF da placa ArUco
+- [x] Estrutura do repositório (monorepo) + `docker compose` funcionando
+- [x] CI básico (lint + testes) — GitHub Actions: api/worker/web em paralelo
+- [x] Gerar o PDF da placa ArUco — `hardware/placa-aruco-40cm-id0.pdf` (e id1 e A3)
 
 ## Fase 1: Protótipo em casa (semanas 3–6)
 Objetivo: **foto ou vídeo entra, ficha do animal sai**, com fotos e vídeos de Nelore de teste.
@@ -20,8 +20,6 @@ Objetivo: **foto ou vídeo entra, ficha do animal sai**, com fotos e vídeos de 
 - [ ] Funciona **offline** (IndexedDB / Dexie — pasta `offline/` pendente)
 - [x] Importação CSV: animais (`POST /animais/importar-csv`) e pesagens (`POST /pesagens/importar-csv`)
 - [ ] Importação CSV: DEPs (requer tabela `dados_geneticos` — Fase 2)
-
-**Critério de saída**: medir uma caixa de papelão ou um objeto de tamanho conhecido com erro < 3%, e processar 10 vídeos de Nelore de ponta a ponta.
 
 **Critério de saída**: medir uma caixa de papelão ou um objeto de tamanho conhecido com erro < 3%, e processar 10 vídeos de Nelore de ponta a ponta.
 

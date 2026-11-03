@@ -1,0 +1,22 @@
+**/.venv/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/.pytest_cache/
+**/.ruff_cache/
+**/*.egg-info/
+**/dist/
+**/build/
+**/node_modules/
+**/.tsbuildinfo
+# Dados e modelos nunca vão para a imagem
+**/samples/
+**/data/
+**/*.pt
+**/*.onnx
+# Hardware e ML não pertencem às imagens Docker
+hardware/
+ml/
+# Artefatos do IDE
+**/.vscode/
+**/.idea/
