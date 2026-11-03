@@ -2,7 +2,10 @@ from fastapi import FastAPI
 
 from app.routers import (
     animais,
+    aplicacoes_sanitarias,
+    atendimentos_veterinarios,
     avaliacoes,
+    campanhas,
     dispositivos,
     fazendas,
     identificacoes,
@@ -22,6 +25,9 @@ app.include_router(animais.router)
 app.include_router(pesagens.router)
 app.include_router(identificacoes.router)
 app.include_router(dispositivos.router)
+app.include_router(campanhas.router)
+app.include_router(aplicacoes_sanitarias.router)
+app.include_router(atendimentos_veterinarios.router)
 app.include_router(avaliacoes.router)
 
 

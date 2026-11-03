@@ -84,3 +84,33 @@ class StatusDispositivo(str, enum.Enum):
     ativo = "ativo"
     inativo = "inativo"
     manutencao = "manutencao"
+
+
+class TipoAplicacaoSanitaria(str, enum.Enum):
+    """Tipos distintos porque carencia, obrigatoriedade e campos variam.
+
+    - vacina: brucelose B19, clostridiose, raiva etc. Aftosa suspensa 2025
+      vira so historico (nao-ativa). Ver docs/11 §4.
+    - vermifugo: avermectinas (ivermectina/moxidectina), carencia 35-133d.
+    - terapeutico: antibiotico, antiinflamatorio, outros medicamentos.
+    """
+
+    vacina = "vacina"
+    vermifugo = "vermifugo"
+    terapeutico = "terapeutico"
+
+
+class ViaAdministracao(str, enum.Enum):
+    IM = "IM"  # intramuscular
+    SC = "SC"  # subcutanea
+    IV = "IV"  # intravenosa
+    oral = "oral"
+    topico = "topico"
+    outra = "outra"
+
+
+class StatusCampanha(str, enum.Enum):
+    planejada = "planejada"
+    em_andamento = "em_andamento"
+    concluida = "concluida"
+    cancelada = "cancelada"
