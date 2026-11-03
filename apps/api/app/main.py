@@ -9,6 +9,7 @@ from app.routers import (
     dispositivos,
     fazendas,
     identificacoes,
+    leituras_rfid,
     lotes,
     pesagens,
 )
@@ -25,6 +26,7 @@ app.include_router(animais.router)
 app.include_router(pesagens.router)
 app.include_router(identificacoes.router)
 app.include_router(dispositivos.router)
+app.include_router(leituras_rfid.router)
 app.include_router(campanhas.router)
 app.include_router(aplicacoes_sanitarias.router)
 app.include_router(atendimentos_veterinarios.router)

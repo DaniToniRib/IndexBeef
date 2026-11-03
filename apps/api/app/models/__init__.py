@@ -14,6 +14,7 @@ from app.models.captura import Captura
 from app.models.dispositivo import Dispositivo
 from app.models.fazenda import Fazenda
 from app.models.identificacao_eletronica import IdentificacaoEletronica
+from app.models.leitura_rfid import LeituraRfid
 from app.models.lote import Lote
 from app.models.pesagem import Pesagem
 
@@ -28,6 +29,7 @@ __all__ = [
     "Dispositivo",
     "Fazenda",
     "IdentificacaoEletronica",
+    "LeituraRfid",
     "Lote",
     "Pesagem",
     "SyncMixin",
